@@ -1,0 +1,24 @@
+/* 🌐 Puxa a fonte premium Inter direto do servidor do Google Fonts */
+@import url('https://googleapis.com');
+
+@import "tailwindcss";
+
+/* 🎨 CONFIGURAÇÃO DO TAILWIND V4: Vincula a fonte Inter como a principal do sistema */
+@theme {
+  --color-deep-obsidian: #0F172A;   /* Nosso cinza-escuro premium para textos e sidebars */
+  --color-mint-clean: #10B981;      /* Verde vibrante para CTAs e caixa positivo */
+  --color-soft-platinum: #F8FAFC;   /* Branco acinzentado ultra-limpo de fundo */
+  --color-dentistry-teal: #06B6D4;  /* Cian profundo para detalhes da agenda */
+  
+  /* Substitui a fonte sem-serifa padrão pela Inter */
+  --font-sans: "Inter", "sans-serif";
+}
+
+/* Aplica a fonte e as suavizações de renderização no corpo inteiro do app */
+body {
+  background-color: var(--color-soft-platinum);
+  color: var(--color-deep-obsidian);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
