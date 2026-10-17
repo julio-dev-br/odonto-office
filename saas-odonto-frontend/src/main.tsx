@@ -9,11 +9,8 @@ import { DashboardLayout } from './layouts/DashboardLayout'
 import Overview from './pages/dashboard/Overview'
 import Patients from './pages/dashboard/Patients'
 import Agenda from './pages/dashboard/Agenda'
+import Financial from './pages/dashboard/Financial'
 
-// Rascunhos rápidos para as novas abas que criamos na sidebar
-// const PatientsPlaceholder = () => <div className="text-2xl font-bold text-deep-obsidian">Patients Management Module</div>;
-// const AgendaPlaceholder = () => <div className="text-2xl font-bold text-deep-obsidian">Clinical Schedule Agenda</div>;
-const FinancialPlaceholder = () => <div className="text-2xl font-bold text-deep-obsidian">Cash Flow & Financial Ledger</div>;
 
 // Configuração das Rotas com Layout Aninhado (Nested Routes)
 const router = createBrowserRouter([
@@ -31,7 +28,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'patients', // Vira /dashboard/patients
-        element: <Patients />, // 👈 Trocado para o componente real!
+        element: <Patients />, 
       },
 
       {
@@ -40,7 +37,7 @@ const router = createBrowserRouter([
       },
       {
         path: 'financial', // Vira /dashboard/financial
-        element: <FinancialPlaceholder />,
+        element: <Financial />,
       },
     ],
   },

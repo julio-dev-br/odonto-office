@@ -13,10 +13,21 @@ export function Sidebar() {
     { name: 'Financial', path: '/dashboard/financial', icon: <DollarSign size={20} /> },
   ];
 
+  // Limpa o cofre por completo e protege as chaves da clínica!
   const handleLogout = () => {
+    // Apaga o token de acesso JWT
     localStorage.removeItem('@OdontoOffice:token');
+
+    // Apaga o ID do Tenant para não deixar rastro de contexto de dados
+    localStorage.removeItem('@OdontoOffice:tenantId');
+
+    // Se você quiser limpar absolutamente tudo do app de uma vez (opção sênior mais rápida):
+    // localStorage.clear();
+
+    // Redireciona o usuário para a porta da fortaleza com segurança máxima
     navigate('/login');
   };
+
 
   return (
     <aside className="w-64 bg-deep-obsidian text-slate-300 flex flex-col min-h-screen border-r border-slate-800">
@@ -36,11 +47,10 @@ export function Sidebar() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
-                isActive
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${isActive
                   ? 'bg-mint-clean text-deep-obsidian font-bold shadow-lg shadow-mint-clean/20'
                   : 'hover:bg-slate-800 hover:text-white'
-              }`}
+                }`}
             >
               {item.icon}
               {item.name}
