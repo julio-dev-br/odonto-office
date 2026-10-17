@@ -8,7 +8,7 @@ interface BentoCardProps {
   type?: 'income' | 'expense' | 'neutral';
 }
 
-// 🚀 CERTIFIQUE-SE DE QUE ESTÁ "export function" OU COLOQUE O "export default" NO FINAL
+// "export function" OU COLOQUE O "export default" NO FINAL
 export function BentoCard({ title, value, description, icon, type = 'neutral' }: BentoCardProps) {
   const highlightColor = 
     type === 'income' ? 'text-mint-clean' : 
