@@ -1,33 +1,77 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
+import { api } from '../../services/api'; 
 import { PatientForm } from '../../components/PatientForm';
 import { PatientList } from '../../components/PatientList';
 
+interface Patient {
+  id: string;
+  name: string;
+  cpf: string;
+  whatsapp: string;
+  createdAt: string;
+}
+
 export default function Patients() {
-  //  Dados simulados que logo mais serão alimentados pela API NestJS!
-  const [patients, setPatients] = useState([
-    { id: '1', name: 'Mariana Costa', cpf: '222.222.222-22', whatsapp: '11977777777', createdAt: '2026-10-17' },
-    { id: '2', name: 'Rodrigo Silva', cpf: '333.333.333-33', whatsapp: '11988888888', createdAt: '2026-10-17' }
-  ]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Handler inteligente que recebe os dados do PatientForm e atualiza a listagem de forma reativa
-  const handleAddPatient = (newPatientData: { name: string; cpf: string; whatsapp: string }) => {
-    const newPatient = {
-      id: (patients.length + 1).toString(),
-      name: newPatientData.name,
-      cpf: newPatientData.cpf,
-      whatsapp: newPatientData.whatsapp,
-      createdAt: new Date().toISOString().split('T')[0] // Carimba com a data atual (AAAA-MM-DD)
-    };
+  //  Busca os pacientes salvos no Postgres
+  const fetchPatients = async () => {
+    try {
+      setIsLoading(true);
+      setError('');
+      const response = await api.get('/patients');
+      
+      // Mapeia os dados convertendo propriedades se necessário e limpa a tipagem
+      const formatted = response.data.map((p: any) => ({
+        id: p.id.toString(),
+        name: p.name,
+        cpf: p.cpf,
+        whatsapp: p.whatsapp,
+        createdAt: new Date(p.createdAt).toLocaleDateString('pt-BR') // Formata a data para BR
+      }));
+      
+      setPatients(formatted);
+    } catch (err: any) {
+      console.error(err);
+      setError('Falha ao carregar a lista de pacientes da clínica.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    // Insere o novo paciente no topo da lista
-    setPatients([newPatient, ...patients]);
+  // Dispara a busca assim que o componente monta na tela
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  // Envia os dados do formulário para a API NestJS
+  const handleAddPatient = async (newPatientData: { name: string; cpf: string; whatsapp: string }) => {
+    try {
+      setError('');
+      
+      // Dispara o POST real para a rota controlada por clínica do backend
+      await api.post('/patients', {
+        name: newPatientData.name,
+        cpf: newPatientData.cpf,
+        whatsapp: newPatientData.whatsapp
+      });
+
+      // Recarrega a tabela de forma limpa direto do banco para trazer os IDs gerados pelo Postgres!
+      await fetchPatients();
+    } catch (err: any) {
+      console.error(err);
+      const apiMessage = err.response?.data?.message;
+      alert(typeof apiMessage === 'string' ? apiMessage : 'Erro ao salvar novo paciente no banco de dados.');
+    }
   };
 
   return (
     <div className="space-y-8 animate-fade-in">
       
-      {/* Título e Descrição da Tela */}
+      {/* Título e Descrição */}
       <div>
         <h1 className="text-3xl font-extrabold text-deep-obsidian tracking-tight flex items-center gap-3">
           <Users className="text-mint-clean" size={32} /> Patients Management
@@ -37,11 +81,24 @@ export default function Patients() {
         </p>
       </div>
 
-      {/* Formulário de Cadastro Rápido */}
+      {/* Alerta de Erro de Conexão */}
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 font-medium">
+          {error}
+        </div>
+      )}
+
+      {/* Formulário de Cadastro Rápido Real */}
       <PatientForm onAddPatient={handleAddPatient} />
 
-      {/* Tabela de Listagem e Filtro Inteligente */}
-      <PatientList patients={patients} />
+      {/* Tabela de Listagem Real (Com tratamento de Loading) */}
+      {isLoading ? (
+        <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm text-sm text-gray-400 font-medium animate-pulse">
+          Carregando prontuários e registros de pacientes...
+        </div>
+      ) : (
+        <PatientList patients={patients} />
+      )}
 
     </div>
   );

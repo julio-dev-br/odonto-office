@@ -3,7 +3,7 @@ import { PrismaService } from '../../core/database/prisma.service';
 
 @Injectable()
 export class PatientsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async create(data: { name: string; cpf?: string; whatsapp?: string }) {
     return this.prisma.tenantClient.patient.create({
@@ -18,8 +18,12 @@ export class PatientsService {
 
   // Lista APENAS os pacientes pertencentes à clínica atual
   async findAll() {
-    return this.prisma.tenantClient.patient.findMany({
-      orderBy: { createdAt: 'desc' },
+    const client = this.prisma.tenantClient as any;
+    const model = client.patient || client.Patient;
+
+    return model.findMany({
+      orderBy: { name: 'asc' },
     });
   }
+
 }

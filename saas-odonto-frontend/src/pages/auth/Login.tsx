@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, Key, Mail, Building2 } from 'lucide-react';
+import { api } from '../../services/api';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -12,26 +13,40 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // fiação real do Axios aqui!
-    setTimeout(() => {
-      if (email && password) {
-        // Guarda as credenciais no localStorage temporariamente para simular o passaporte
-        localStorage.setItem('@OdontoOffice:token', 'MOCK_JWT_TOKEN_PLATINA_2026');
+    try {
+      const response = await api.post('/auth/login', {
+        tenantId,
+        email,
+        password,
+      });
+
+      // Se a API nos devolver o token, salvamos no navegador e liberamos a entrada
+      if (response.data?.access_token) {
+        localStorage.setItem('@OdontoOffice:token', response.data.access_token);
         localStorage.setItem('@OdontoOffice:tenantId', tenantId);
         
         setIsLoading(false);
-        navigate('/dashboard'); // 🚀 Joga o dentista direto para o painel de controle!
+        navigate('/dashboard'); // Joga o dentista para dentro da fortaleza!
       } else {
-        setIsLoading(false);
-        setError('Please fill in all authorization fields.');
+        throw new Error('Authentication token not received.');
       }
-    }, 800);
+    } catch (err: any) {
+      setIsLoading(false);
+      // Captura a mensagem de erro vinda diretamente do filtro do NestJS ou estouro de conexão
+      const apiMessage = err.response?.data?.message;
+      setError(
+        typeof apiMessage === 'string' 
+          ? apiMessage 
+          : 'Invalid credentials or connection refused. Please check if backend is running.'
+      );
+    }
   };
+
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-white font-sans antialiased">

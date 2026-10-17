@@ -43,7 +43,7 @@ export function AgendaTimeline({ appointments }: AgendaTimelineProps) {
                 }`}
               >
                 {/* Bloco de Horário Fixo */}
-                <div className="flex flex-col items-center justify-center bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 min-w-[70px] font-mono">
+                <div className="flex flex-col items-center justify-center bg-gray-50 border border-gray-100 rounded-xl px-3 py-2 min-w-70px font-mono">
                   <span className="text-xs font-bold text-deep-obsidian">{appt.startAt}</span>
                   <span className="text-[10px] text-gray-400 font-medium">{appt.endAt}</span>
                 </div>
