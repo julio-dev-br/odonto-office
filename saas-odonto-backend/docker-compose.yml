@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  saas-postgres:
+    image: postgres:15-alpine
+    container_name: saas_odontologia_db
+    environment:
+      POSTGRES_USER: saas_admin
+      POSTGRES_PASSWORD: SaasSecure2026
+      POSTGRES_DB: saas_core_db
+    ports:
+      - "5433:5432" # 🚀 Isolado na porta 5433 para não chocar com a FUABC ou outros bancos!
+    volumes:
+      - saas_pgdata:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  saas_pgdata:

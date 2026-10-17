@@ -1,0 +1,192 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Tenant / Clinic
+model Tenant {
+  id               BigInt                 @id @default(autoincrement())
+  name             String                 @db.VarChar(200)
+  slug             String                 @unique @db.VarChar(100)
+  domain           String?                @db.VarChar(255)
+  subdomain        String?                @db.VarChar(100)
+  plan             String                 @default("starter") @db.VarChar(50)
+  status           String                 @default("active") @db.VarChar(30)
+  createdAt        DateTime               @default(now()) @map("created_at")
+  updatedAt        DateTime               @default(now()) @updatedAt @map("updated_at")
+  clinicSites      ClinicSite[]
+  patients         Patient[]
+  professionals    Professional[]
+  users            User[]
+  appointments     Appointment[]
+  medicalRecords   MedicalRecord[]
+  financialTrans   FinancialTransaction[]
+  dentalProcedures DentalProcedure[]
+
+  @@map("tenants")
+}
+
+// System Users (Authentication)
+model User {
+  id            BigInt         @id @default(autoincrement())
+  tenantId      BigInt         @map("tenant_id")
+  name          String         @db.VarChar(200)
+  email         String         @db.VarChar(255)
+  password      String         @db.VarChar(255)
+  role          String         @db.VarChar(50)
+  active        Boolean        @default(true)
+  lastLogin     DateTime?      @map("last_login")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @default(now()) @updatedAt @map("updated_at")
+  professionals Professional[]
+  tenant        Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email], name: "uk_users_email")
+  @@map("users")
+}
+
+// Dentists / Professionals
+model Professional {
+  id             BigInt          @id @default(autoincrement())
+  tenantId       BigInt          @map("tenant_id")
+  userId         BigInt?         @map("user_id")
+  name           String          @db.VarChar(200)
+  cro            String?         @db.VarChar(50)  // Registro do Conselho Regional de Odontologia
+  specialty      String?         @db.VarChar(100) // ex: "Ortodontia", "Endodontia"
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+
+  @@map("professionals")
+}
+
+// Clinic Custom Landing Page
+model ClinicSite {
+  id          BigInt  @id @default(autoincrement())
+  tenantId    BigInt  @map("tenant_id")
+  title       String  @db.VarChar(255)
+  description String? @db.Text
+  logo        String? @db.VarChar(500)
+  phone       String? @db.VarChar(30)
+  whatsapp    String? @db.VarChar(30)
+
+  //Branding & Custom Palette (Apple / High-Tech Style Baseline)
+  primaryColor    String @default("#0F172A") @map("primary_color") @db.VarChar(7) // Deep Obsidian
+  accentColor     String @default("#10B981") @map("accent_color") @db.VarChar(7) // Mint Clean
+  backgroundColor String @default("#F8FAFC") @map("background_color") @db.VarChar(7) // Soft Platinum
+  theme           String @default("light") @db.VarChar(50) // light or dark
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("clinic_sites")
+}
+
+// Patients
+model Patient {
+  id             BigInt                 @id @default(autoincrement())
+  tenantId       BigInt                 @map("tenant_id")
+  name           String                 @db.VarChar(200)
+  cpf            String?                @db.VarChar(14)
+  whatsapp       String?                @db.VarChar(30)
+  createdAt      DateTime               @default(now()) @map("created_at")
+  tenant         Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  financialTrans FinancialTransaction[]
+
+  @@map("patients")
+}
+
+// Appointments / Agenda
+model Appointment {
+  id             BigInt        @id @default(autoincrement())
+  tenantId       BigInt        @map("tenant_id")
+  patientId      BigInt        @map("patient_id")
+  professionalId BigInt        @map("professional_id") 
+  startAt        DateTime      @map("start_at") @db.Timestamp()
+  endAt          DateTime      @map("end_at") @db.Timestamp()
+  type           String?       @db.VarChar(100)
+  status         String        @default("scheduled") @db.VarChar(30)
+  notes          String?       @db.Text
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professional   Professional  @relation(fields: [professionalId], references: [id], onDelete: Cascade) // 🚀 Nova amarração!
+
+  @@map("appointments")
+}
+
+// Medical Records / Clinical Evolution (Updated with Procedure Relation)
+model MedicalRecord {
+  id             BigInt           @id @default(autoincrement())
+  tenantId       BigInt           @map("tenant_id")
+  patientId      BigInt           @map("patient_id")
+  professionalId BigInt           @map("professional_id") 
+  procedureId    BigInt?          @map("procedure_id")
+  description    String           @db.Text
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
+
+  // Relacionamentos
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient        Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure      DentalProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  professional   Professional     @relation(fields: [professionalId], references: [id], onDelete: Cascade) // 🚀 Nova amarração!
+
+  @@map("medical_records")
+}
+
+//NOVO MODELO: CATÁLOGO DE PROCEDIMENTOS E PRECIFICAÇÃO
+model DentalProcedure {
+  id           BigInt   @id @default(autoincrement())
+  tenantId     BigInt   @map("tenant_id")
+  name         String   @db.VarChar(150) // ex: "Clareamento Caseiro", "Profilaxia (Limpeza)"
+  description  String?  @db.Text
+  price        Decimal  @db.Decimal(10, 2) // Preço sugerido do procedimento
+  estimatedMin Int      @default(60) @map("estimated_min") // Tempo estimado de cadeira em minutos
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  medicalRecords MedicalRecord[]
+
+  @@map("dental_procedures")
+}
+
+// Cash Flow / Financial Transactions
+model FinancialTransaction {
+  id            BigInt    @id @default(autoincrement())
+  tenantId      BigInt    @map("tenant_id")
+  patientId     BigInt?   @map("patient_id")
+  description   String    @db.VarChar(255)
+  amount        Decimal   @db.Decimal(10, 2)
+  type          String    @db.VarChar(10) // "INCOME" or "EXPENSE"
+  status        String    @default("pending") @db.VarChar(30) // "paid", "pending", "overdue"
+  dueDate       DateTime  @map("due_date") @db.Date
+  paymentDate   DateTime? @map("payment_date") @db.Date
+  paymentMethod String?   @map("payment_method") @db.VarChar(50)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient Patient? @relation(fields: [patientId], references: [id], onDelete: SetNull)
+
+  @@map("financial_transactions")
+}
