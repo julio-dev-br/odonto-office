@@ -3,41 +3,46 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import './index.css'
 
-// Importações de Layouts e Páginas
+// Importações de Segurança, Layouts e Páginas
 import Login from './pages/auth/Login'
+import { ProtectedRoute } from './components/ProtectedRoute' 
 import { DashboardLayout } from './layouts/DashboardLayout'
 import Overview from './pages/dashboard/Overview'
 import Patients from './pages/dashboard/Patients'
 import Agenda from './pages/dashboard/Agenda'
 import Financial from './pages/dashboard/Financial'
 
-
-// Configuração das Rotas com Layout Aninhado (Nested Routes)
+// Configuração do Roteador Sênior Protegido (Nested Protected Routes)
 const router = createBrowserRouter([
   {
     path: '/login',
     element: <Login />,
   },
   {
-    path: '/dashboard',
-    element: <DashboardLayout />, // O layout abraça todas as rotas internas abaixo!
+    //  Qualquer rota interna abaixo exige o passaporte do token!
+    element: <ProtectedRoute />, 
     children: [
       {
-        path: '', // Rota padrão /dashboard
-        element: <Overview />,
-      },
-      {
-        path: 'patients', // Vira /dashboard/patients
-        element: <Patients />, 
-      },
-
-      {
-        path: 'agenda', // Vira /dashboard/agenda
-        element: <Agenda />,
-      },
-      {
-        path: 'financial', // Vira /dashboard/financial
-        element: <Financial />,
+        path: '/dashboard',
+        element: <DashboardLayout />,
+        children: [
+          {
+            path: '', // Rota /dashboard
+            element: <Overview />,
+          },
+          {
+            path: 'patients', // Rota /dashboard/patients
+            element: <Patients />,
+          },
+          {
+            path: 'agenda', // Rota /dashboard/agenda
+            element: <Agenda />,
+          },
+          {
+            path: 'financial', // Rota /dashboard/financial
+            element: <Financial />,
+          },
+        ],
       },
     ],
   },
