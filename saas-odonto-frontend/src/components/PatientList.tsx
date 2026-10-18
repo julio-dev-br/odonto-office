@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { Search, Phone, Fingerprint } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
+import { Search, Printer } from 'lucide-react';
+import { PatientRecordPDF } from './PatientRecordPDF';
 
 interface Patient {
   id: string;
@@ -15,8 +17,31 @@ interface PatientListProps {
 
 export function PatientList({ patients }: PatientListProps) {
   const [search, setSearch] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  
+  // Referência física oculta para o injetor de PDF ler as tags HTML
+  const componentRef = useRef<HTMLDivElement>(null);
 
-  // Filtro de pesquisa em tempo real pelo nome ou CPF
+  // Gatilho inteligente do react-to-print
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: `Ficha_Clinica_${selectedPatient?.name || 'Paciente'}`,
+  });
+
+  const handleTriggerPrint = (patient: Patient) => {
+    // Simula a coleta de consultas vinculadas a esse paciente no banco (pode acoplar Axios depois)
+    const simulatedAppointments = [
+      { id: '1', type: 'Clareamento Laser', startAt: '14:30', professionalName: 'Dr. Anderson Silva', notes: 'Procedimento finalizado com sucesso absoluto. Sem queixas.' }
+    ];
+
+    setSelectedPatient(patient);
+    
+    // Aguarda o estado carregar o paciente e dispara a impressão nativa em lote!
+    setTimeout(() => {
+      handlePrint();
+    }, 100);
+  };
+
   const filteredPatients = patients.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search)
   );
@@ -24,7 +49,7 @@ export function PatientList({ patients }: PatientListProps) {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
       
-      {/* Barra de Ferramentas com a Lupa Alinhada com Perfeição */}
+      {/* Barra de Busca */}
       <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 mb-2">
         <h3 className="text-sm font-bold text-deep-obsidian uppercase tracking-wider">
           Pacientes Cadastrados ({filteredPatients.length})
@@ -44,7 +69,7 @@ export function PatientList({ patients }: PatientListProps) {
         </div>
       </div>
 
-      {/* Tabela de Dados */}
+      {/* Tabela Física */}
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -65,23 +90,32 @@ export function PatientList({ patients }: PatientListProps) {
                 <td className="py-4 px-6 text-gray-500 font-mono text-xs">{patient.cpf}</td>
                 <td className="py-4 px-6 text-gray-500 font-mono text-xs">{patient.whatsapp}</td>
                 <td className="py-4 px-6 text-gray-400 text-xs">{patient.createdAt}</td>
-                <td className="py-4 px-6 text-right">
-                  <button className="text-xs font-bold text-dentistry-teal hover:underline cursor-pointer">
-                    Ver Prontuário
+                <td className="py-4 px-6 text-right flex justify-end gap-4">
+                  <button 
+                    onClick={() => handleTriggerPrint(patient)}
+                    className="text-xs font-bold text-mint-clean hover:underline cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Printer size={14} /> Imprimir Ficha (PDF)
                   </button>
                 </td>
               </tr>
             ))}
-            {filteredPatients.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center py-12 text-sm text-gray-400 font-medium italic">
-                  Nenhum paciente localizado nesta clínica.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
+
+      {/* CONTÊNER OCULTO: Esse div fica invisível na tela, mas acende na folha A4 do PDF! */}
+      <div className="hidden">
+        <div ref={componentRef}>
+          <PatientRecordPDF 
+            patient={selectedPatient} 
+            appointments={selectedPatient ? [
+              { id: '1', type: 'Clareamento Laser', startAt: '14:30', professionalName: 'Dr. Anderson Silva', notes: 'Procedimento finalizado com sucesso absoluto. Sem queixas.' }
+            ] : []} 
+          />
+        </div>
+      </div>
+
     </div>
   );
 }

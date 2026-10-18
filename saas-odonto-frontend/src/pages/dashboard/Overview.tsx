@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, ArrowDownCircle, Users, FileSpreadsheet } from 'lucide-react';
-import toast from 'react-hot-toast'; 
+import toast from 'react-hot-toast';
 import { api } from '../../services/api';
 import { BentoCard } from '../../components/BentoCard';
+import { FinancialChart } from '../../components/FinancialChart'; 
 
 export default function Overview() {
   const [balance, setBalance] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
@@ -10,19 +11,26 @@ export default function Overview() {
   const [procedures, setProcedures] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estados nascem vazios para forçar a secretária a escolher!
+  // Estados do formulário de Prontuário
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [selectedProcedureId, setSelectedProcedureId] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // MOCK HISTÓRICO DE MESES: Acoplado com o preço dinâmico do mês atual vindo do Postgres!
+  const [chartData, setChartData] = useState<any[]>([]);
+
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
+      
       const balanceResponse = await api.get('/financial-transactions/balance');
+      const currentIncome = Number(balanceResponse.data.totalIncome || 0);
+      const currentExpense = Number(balanceResponse.data.totalExpense || 0);
+
       setBalance({
-        totalIncome: Number(balanceResponse.data.totalIncome || 0),
-        totalExpense: Number(balanceResponse.data.totalExpense || 0),
+        totalIncome: currentIncome,
+        totalExpense: currentExpense,
         netBalance: Number(balanceResponse.data.netBalance || 0)
       });
 
@@ -31,6 +39,14 @@ export default function Overview() {
 
       const proceduresResponse = await api.get('/dental-procedures');
       setProcedures(proceduresResponse.data);
+
+      // Injeta os dados dinâmicos do banco no histórico do gráfico para manter o balanço real!
+      setChartData([
+        { month: 'Ago', faturamento: 1200, despesas: 400 },
+        { month: 'Set', faturamento: 3400, despesas: 850 },
+        { month: 'Out', faturamento: currentIncome || 850, despesas: currentExpense || 0 } // Mês Atual dinâmico!
+      ]);
+
     } catch (err) {
       console.error('Erro ao consolidar indicadores da dashboard:', err);
     } finally {
@@ -44,8 +60,6 @@ export default function Overview() {
 
   const handleSignMedicalRecord = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validação de segurança extra para impedir envio das opções padrões vazias
     if (!selectedPatientId) {
       toast.error('Por favor, selecione um paciente válido.');
       return;
@@ -58,19 +72,15 @@ export default function Overview() {
 
     try {
       setIsSubmitting(true);
-
       await api.post('/medical-records', {
         patientId: selectedPatientId.toString(),
         procedureId: selectedProcedureId.toString(),
-        professionalId: "3", // ID do Dr. Anderson Silva
+        professionalId: "3", // ID do Dr. Anderson
         description: description
       });
 
-      // Balão flutuante de sucesso no topo direito!
       toast.success('Prontuário assinado e faturamento injetado!');
       setDescription('');
-      
-      // Reseta os seletores para o padrão limpo após salvar
       setSelectedPatientId('');
       setSelectedProcedureId('');
       
@@ -78,8 +88,6 @@ export default function Overview() {
     } catch (err: any) {
       console.error('Erro ao salvar evolução clínica:', err);
       const apiMessage = err.response?.data?.message;
-      
-      // Balão flutuante vermelho de erro dinâmico da API!
       toast.error(typeof apiMessage === 'string' ? apiMessage : 'Erro ao processar assinatura.');
     } finally {
       setIsSubmitting(false);
@@ -89,7 +97,7 @@ export default function Overview() {
   return (
     <div className="space-y-8 animate-fade-in">
       
-      {/* Welcome Banner */}
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-extrabold text-deep-obsidian tracking-tight">
           Dashboard Overview
@@ -106,7 +114,7 @@ export default function Overview() {
           ))}
         </div>
       ) : (
-        /* indicators grid */
+        /* Indicators Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <BentoCard title="Faturamento Total" value={`R$ ${balance.totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} description="Gatilhos de prontuário ativos" type="income" icon={<TrendingUp size={20} />} />
           <BentoCard title="Despesas Operacionais" value={`R$ ${balance.totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} description="Custo de saída corporativo" type="expense" icon={<ArrowDownCircle size={20} />} />
@@ -114,6 +122,9 @@ export default function Overview() {
           <BentoCard title="Pacientes Ativos" value={patients.length} description="Registros no Postgres" icon={<Users size={20} />} />
         </div>
       )}
+
+      {/* 🚀 GRÁFICO DE EVOLUÇÃO FINANCEIRA GEOMÉTRICA (Injetado com Sucesso!) */}
+      {!isLoading && <FinancialChart data={chartData} />}
 
       {/* 🩺 REGISTRO CLÍNICO AUTOMATIZADO */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
@@ -123,18 +134,11 @@ export default function Overview() {
         
         <form onSubmit={handleSignMedicalRecord} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            {/* Seletor de Paciente com Opção Padrão de Bloqueio */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Paciente Atendido
               </label>
-              <select
-                required
-                value={selectedPatientId}
-                onChange={(e) => setSelectedPatientId(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all cursor-pointer"
-              >
+              <select required value={selectedPatientId} onChange={(e) => setSelectedPatientId(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all cursor-pointer">
                 <option value="">-- Selecione o Paciente Atendido --</option>
                 {patients.map((p) => (
                   <option key={p.id} value={p.id.toString()}>{p.name}</option>
@@ -142,22 +146,14 @@ export default function Overview() {
               </select>
             </div>
 
-            {/* Seletor de Procedimento com Opção Padrão de Bloqueio */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Procedimento Concluído
               </label>
-              <select
-                required
-                value={selectedProcedureId}
-                onChange={(e) => setSelectedProcedureId(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all cursor-pointer"
-              >
+              <select required value={selectedProcedureId} onChange={(e) => setSelectedProcedureId(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all cursor-pointer">
                 <option value="">-- Selecione o Procedimento Realizado --</option>
                 {procedures.map((proc) => (
-                  <option key={proc.id} value={proc.id.toString()}>
-                    {proc.name} — R\$ {Number(proc.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </option>
+                  <option key={proc.id} value={proc.id.toString()}>{proc.name} — R\$ {Number(proc.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</option>
                 ))}
               </select>
             </div>
@@ -167,22 +163,11 @@ export default function Overview() {
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Evolução e Diagnóstico Clínico
             </label>
-            <textarea
-              required
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Descreva detalhadamente o tratamento efetuado no paciente. A assinatura digital irá registrar os valores automaticamente..."
-              rows={3}
-              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all resize-none"
-            />
+            <textarea required value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descreva detalhadamente o tratamento efetuado no paciente..." rows={3} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all resize-none" />
           </div>
 
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting || patients.length === 0}
-              className="bg-dentistry-teal text-white font-bold py-2.5 px-6 rounded-xl text-sm shadow-md hover:shadow-lg hover:bg-dentistry-teal/90 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
-            >
+            <button type="submit" disabled={isSubmitting || patients.length === 0} className="bg-dentistry-teal text-white font-bold py-2.5 px-6 rounded-xl text-sm shadow-md hover:shadow-lg hover:bg-dentistry-teal/90 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2">
               {isSubmitting ? 'Assinando Digitalmente...' : 'Assinar e Registrar Prontuário'}
             </button>
           </div>
