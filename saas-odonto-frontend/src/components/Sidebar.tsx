@@ -1,71 +1,76 @@
-import { LayoutDashboard, Users, Calendar, DollarSign, LogOut } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  DollarSign,
+  FileText,
+  LogOut,
+  Shield
+} from 'lucide-react';
 
 export function Sidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
 
-  // Lista estática dos menus internos do nosso ecossistema SaaS
   const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} /> },
-    { name: 'Patients', path: '/dashboard/patients', icon: <Users size={20} /> },
-    { name: 'Agenda', path: '/dashboard/agenda', icon: <Calendar size={20} /> },
-    { name: 'Financial', path: '/dashboard/financial', icon: <DollarSign size={20} /> },
+    { path: '/dashboard', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+    { path: '/dashboard/patients', name: 'Pacientes', icon: <Users size={20} /> },
+    { path: '/dashboard/agenda', name: 'Agenda', icon: <Calendar size={20} /> },
+    { path: '/dashboard/anamnese', name: 'Anamnese', icon: <FileText size={20} /> },
+    { path: '/dashboard/financial', name: 'Financeiro', icon: <DollarSign size={20} /> },
   ];
 
-  // Limpa o cofre por completo e protege as chaves da clínica!
   const handleLogout = () => {
-    // Apaga o token de acesso JWT
-    localStorage.removeItem('@OdontoOffice:token');
-
-    // Apaga o ID do Tenant para não deixar rastro de contexto de dados
-    localStorage.removeItem('@OdontoOffice:tenantId');
-
-    // Se você quiser limpar absolutamente tudo do app de uma vez (opção sênior mais rápida):
-    // localStorage.clear();
-
-    // Redireciona o usuário para a porta da fortaleza com segurança máxima
-    navigate('/login');
+    localStorage.clear();
+    window.location.href = '/login';
   };
 
-
   return (
-    <aside className="w-64 bg-deep-obsidian text-slate-300 flex flex-col min-h-screen border-r border-slate-800">
-      {/* Brand / Logo */}
-      <div className="p-6 border-b border-slate-800">
-        <h2 className="text-xl font-black text-white tracking-wider uppercase">
-          Odonto<span className="text-mint-clean">Office</span>
-        </h2>
-        <span className="text-xs text-slate-500 font-medium">SaaS Platform v1.0</span>
+    <aside className="w-64 bg-deep-obsidian h-screen text-slate-400 flex flex-col justify-between border-r border-slate-800 shrink-0 font-sans">
+
+      {/* Topo / Logo da Plataforma */}
+      <div className="p-6">
+        <div className="flex items-center gap-2 text-white">
+          <div className="p-2 bg-mint-clean/10 text-mint-clean rounded-xl">
+            <Shield size={20} />
+          </div>
+          <h2 className="text-lg font-black tracking-wider uppercase">
+            Odonto<span className="text-mint-clean">Office</span>
+          </h2>
+
+        </div>
+        <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-4 mt-4">
+          <span>SaaS Plataforma v1.0</span>
+        </div>
+
+        {/* Links de Rota Dinâmicos */}
+        <nav className="mt-8 space-y-1">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all duration-150 ${isActive
+                  ? 'bg-mint-clean text-deep-obsidian shadow-lg shadow-mint-clean/10'
+                  : 'hover:bg-slate-800/50 hover:text-white'
+                  }`}
+              >
+                {item.icon}
+                {item.name}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 p-4 space-y-1">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${isActive
-                  ? 'bg-mint-clean text-deep-obsidian font-bold shadow-lg shadow-mint-clean/20'
-                  : 'hover:bg-slate-800 hover:text-white'
-                }`}
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Footer / Logout Section */}
-      <div className="p-4 border-t border-slate-800">
+      {/* Rodapé / Botão de Logout Corporativo */}
+      <div className="p-6 border-t border-slate-800/60">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-400 rounded-xl transition-all duration-150"
+          className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all cursor-pointer"
         >
-          <LogOut size={20} />
+          <LogOut size={18} />
           Sign Out
         </button>
       </div>

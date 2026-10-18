@@ -12,6 +12,7 @@ import Overview from './pages/dashboard/Overview'
 import Patients from './pages/dashboard/Patients'
 import Agenda from './pages/dashboard/Agenda'
 import Financial from './pages/dashboard/Financial'
+import Anamnese from './pages/dashboard/Anamnese'
 
 const router = createBrowserRouter([
   {
@@ -19,7 +20,7 @@ const router = createBrowserRouter([
     element: <Login />,
   },
   {
-    element: <ProtectedRoute />, 
+    element: <ProtectedRoute />,
     children: [
       {
         path: '/dashboard',
@@ -29,6 +30,9 @@ const router = createBrowserRouter([
           { path: 'patients', element: <Patients /> },
           { path: 'agenda', element: <Agenda /> },
           { path: 'financial', element: <Financial /> },
+          {
+            path: 'anamnese', element: <Anamnese />,
+          },
         ],
       },
     ],
@@ -42,13 +46,13 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     {/* O Toaster gerencia os balões de notificação de forma invisível */}
-    <Toaster 
-      position="top-right" 
+    <Toaster
+      position="top-right"
       reverseOrder={false}
       gutter={8}
       toastOptions={{
         className: 'font-sans text-xs font-bold rounded-2xl border transition-all duration-300 shadow-2xl backdrop-blur-md px-4 py-3 flex items-center gap-2',
-        
+
         // Configurações reativas específicas para cada gatilho clínico
         success: {
           iconTheme: {
@@ -72,7 +76,7 @@ createRoot(document.getElementById('root')!).render(
             borderColor: '#FEE2E2',
           },
         },
-      }} 
+      }}
     />
     <RouterProvider router={router} />
   </StrictMode>,
