@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { TableSkeleton } from '../../components/TableSkeleton';
 import { Users } from 'lucide-react';
 import { api } from '../../services/api'; 
 import { PatientForm } from '../../components/PatientForm';
@@ -88,18 +89,15 @@ export default function Patients() {
         </div>
       )}
 
-      {/* Formulário de Cadastro Rápido Real */}
+      {/*Formulário de Cadastro Rápido Real */}
       <PatientForm onAddPatient={handleAddPatient} />
 
-      {/* Tabela de Listagem Real (Com tratamento de Loading) */}
+      {/* Tabela com Feedback UX Sênior (Skeleton Screen!) */}
       {isLoading ? (
-        <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center shadow-sm text-sm text-gray-400 font-medium animate-pulse">
-          Carregando prontuários e registros de pacientes...
-        </div>
+        <TableSkeleton /> 
       ) : (
         <PatientList patients={patients} />
       )}
-
     </div>
   );
 }

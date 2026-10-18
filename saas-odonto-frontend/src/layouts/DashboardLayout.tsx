@@ -17,7 +17,8 @@ export function DashboardLayout() {
   };
 
   return (
-    <div className={`flex min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-slate-950' : 'bg-soft-platinum'}`}>
+    <div className={`flex min-h-screen transition-colors duration-300 ${isDarkMode ? 'dark bg-slate-900 text-slate-100' : 'bg-soft-platinum text-deep-obsidian'}`}>
+
       {/*  Menu Lateral Fixo */}
       <Sidebar />
 
@@ -36,7 +37,6 @@ export function DashboardLayout() {
           <div className="flex items-center gap-6">
 
             {/*  BOTÃO DE TEMA (Sol e Lua HTML/CSS) */}
-            {/* ☀️/🌙 BOTÃO DE TEMA CORRIGIDO */}
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
               className="p-2 text-gray-400 hover:text-deep-obsidian dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer"

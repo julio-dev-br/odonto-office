@@ -1,48 +1,202 @@
-/* 🌐 Puxa a fonte premium Inter */
+/* Puxa a fonte premium Inter do Google Fonts */
 @import url('https://googleapis.com');
 
 @import "tailwindcss";
 
-/* 🎨 CONFIGURAÇÃO DO TAILWIND V4: Tokens de Design Reativos */
+/* CONFIGURAÇÃO DO TAILWIND V4: Tokens de Design Reativos */
 @theme {
-  --color-deep-obsidian: #0F172A;   /* Texto principal e sidebar no modo claro */
-  --color-mint-clean: #10B981;      /* Verde institucional dos CTAs */
-  --color-soft-platinum: #F8FAFC;   /* Fundo ultra-limpo estilo Apple */
-  --color-dentistry-teal: #06B6D4;  /* Destaques da agenda */
-  
+  --color-deep-obsidian: #0F172A;
+  /* Texto principal no modo claro */
+  --color-mint-clean: #10B981;
+  /* Verde institucional dos CTAs */
+  --color-soft-platinum: #F8FAFC;
+  /* Fundo ultra-limpo estilo Apple */
+  --color-dentistry-teal: #06B6D4;
+  /* Destaques da agenda */
+
   --font-sans: "Inter", "sans-serif";
 }
 
-/* 🌙 VARIÁVEIS DO MODO ESCURO AUTOMÁTICAS (Quando a classe .dark estiver ativa) */
+/* MODO ESCURO ISOLADO: Ajuste Fino por Blocos */
 .dark {
-  --color-soft-platinum: #0F172A;   /* O fundo vira o cinza-escuro elegante */
-  --color-deep-obsidian: #F8FAFC;   /* O texto principal inverte para branco platinum */
-  
-  /* Estilos específicos para os nossos componentes Bento Box no modo escuro */
-  .bg-white {
-    background-color: #1E293B !important; /* Cards ganham o tom Slate-800 */
-    border-color: #334155 !important;     /* Bordas sutis Slate-700 */
+  --color-soft-platinum: #0F172A;
+  /* O fundo geral vira o azul-escuro profundo */
+  --color-deep-obsidian: #F8FAFC;
+  /* O texto principal ganha o tom platinum suave */
+
+  /* BLOCO 1: Customização Exclusiva dos Bento Cards de Conteúdo */
+  main .bg-white {
+    background-color: #1E293B !important;
+    /* Slate-800: Tom premium harmonizado */
+    border-color: #334155 !important;
+    /* Borda discreta Slate-700 */
+    border-radius: 1rem !important;
   }
-  
+
+  /* AJUSTE DAS LABELS E SPANS GERAIS DO MIOLO */
+  main label,
+  main .text-gray-500,
+  main .text-slate-500 {
+    color: #94A3B8 !important;
+    /* Cinza ardósia suave para textos e labels */
+  }
+
+  /* CORRIGIDO: Harmonização Suprema dos Spans e Subtextos da Agenda */
+  main .space-y-4 span,
+  main .text-gray-400,
+  main p.text-xs.text-gray-400 span,
+  main p.text-xs.text-gray-400 italic {
+    color: #94A3B8 !important;
+    /* Notas clínicas e observações ganham contraste nítido! */
+  }
+
+  main p.text-xs.text-gray-400 svg {
+    color: #64748B !important;
+    /* Ícones de alerta das notas ficam discretos */
+  }
+
+  /* Garante contraste do bloco de horário fixo na agenda */
+  main .font-mono span.text-deep-obsidian {
+    color: #F8FAFC !important;
+    /* Horários de início acendem em branco platinum */
+  }
+
+  main .font-mono span.text-gray-400 {
+    color: #64748B !important;
+    /* Horários de término ganham o cinza sutil */
+  }
+
+  /* Preserva a cor das badges ativas de status de consulta no modo escuro */
+  main span.bg-mint-clean\/10 {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    color: #10B981 !important;
+  }
+
+  /* BLOCO 2: Customização Cirúrgica do Header (Topbar) */
   header {
     background-color: #1E293B !important;
     border-color: #334155 !important;
-  }
-  
-  input, select, textarea {
-    background-color: #334155 !important;
-    border-color: #475569 !important;
     color: #F8FAFC !important;
   }
-  
-  th {
-    background-color: #1E293B !important;
+
+  header .text-gray-500,
+  header .text-gray-400,
+  header span {
     color: #94A3B8 !important;
   }
-  
-  tr:hover {
-    background-color: #334155/30 !important;
+
+  /* UNIFICAÇÃO DE HOVER (Topbar) */
+  header .hover\:bg-gray-50:hover,
+  header button:hover {
+    background-color: #0F172A !important;
+    color: #10B981 !important;
   }
+
+  /* BLOCO 3: Harmonização do Dropdown de Perfil e Avatar */
+  header .absolute.right-0 {
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5) !important;
+    border-radius: 1rem !important;
+  }
+
+  header .absolute.right-0 .border-b,
+  header .absolute.right-0 .border-t {
+    border-color: #334155 !important;
+  }
+
+  header .absolute.right-0 button:hover {
+    background-color: #0F172A !important;
+    color: #10B981 !important;
+  }
+
+  header .bg-deep-obsidian,
+  header .w-8.h-8 {
+    background-color: #F8FAFC !important;
+    border-color: #F8FAFC !important;
+    color: #0F172A !important;
+  }
+
+  /* BLOCO 4: Tabelas e Campos de Entrada (Inputs/Selects) */
+  main input,
+  main select,
+  main textarea {
+    background-color: #0F172A !important;
+    border-color: #334155 !important;
+    color: #F8FAFC !important;
+    border-radius: 0.75rem !important;
+  }
+
+  main input:focus,
+  main select:focus,
+  main textarea:focus {
+    border-color: #10B981 !important;
+  }
+
+  /* Ajuste das Tabelas Clínicas e Financeiras */
+  main table {
+    border-color: #1E293B !important;
+  }
+
+  main thead tr,
+  main .bg-gray-50\/50 {
+    background-color: #0F172A !important;
+    border-color: #1E293B !important;
+  }
+
+  main th {
+    color: #64748B !important;
+    border-color: #1E293B !important;
+  }
+
+  main tr {
+    border-color: #1E293B !important;
+  }
+
+  main tr:hover {
+    background-color: #1E293B/40 !important;
+  }
+}
+
+/* Protege a Sidebar e todos os seus sub-elementos */
+.dark aside,
+.dark aside *,
+.dark aside span {
+  background-color: #0F172A !important;
+  color: #94A3B8 !important;
+  border-color: #1E293B !important;
+}
+
+/* Protege e força o termo "Office" a continuar verde Mint Clean no logo da Sidebar! */
+.dark aside h2 span.text-mint-clean,
+aside h2 span.text-mint-clean {
+  color: #10B981 !important;
+  background-color: transparent !important;
+}
+
+/* Garante que os ícones do Lucide-react também ganhem a cor branca/verde no hover da Sidebar */
+.dark aside a:hover,
+.dark aside a:hover * {
+  background-color: #1E293B !important;
+  color: #FFFFFF !important;
+}
+
+/* Garante o destaque total do botão ativo na Sidebar */
+.dark aside .bg-mint-clean {
+  background-color: #10B981 !important;
+  color: #0F172A !important;
+}
+
+.dark aside .bg-mint-clean * {
+  color: #0F172A !important;
+  background-color: transparent !important;
+}
+
+.dark .react-hot-toast {
+  background-color: #1E293B !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
+  /* Borda discreta Slate-700 */
 }
 
 /* Aplicação dos estilos globais base */
