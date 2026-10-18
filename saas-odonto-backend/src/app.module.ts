@@ -39,7 +39,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService, // Registra o provedor do banco de dados no ecossistema
+    PrismaService, 
   ],
 })
 export class AppModule implements NestModule {

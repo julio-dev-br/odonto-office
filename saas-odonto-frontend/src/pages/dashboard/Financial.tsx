@@ -18,7 +18,7 @@ export default function Financial() {
   const [balance, setBalance] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
-  // 📥 1. FUNÇÃO DE LEITURA REAL: Busca o fluxo de caixa consolidado do backend
+  //  FUNÇÃO DE LEITURA REAL: Busca o fluxo de caixa consolidado do backend
   const fetchFinancialData = async () => {
     try {
       setIsLoading(true);
@@ -55,7 +55,7 @@ export default function Financial() {
     fetchFinancialData();
   }, []);
 
-  // 💰 2. FUNÇÃO DE BAIXA REAL (PUT /pay): O clique que faz o dinheiro entrar no caixa!
+  // FUNÇÃO DE BAIXA REAL (PUT /pay): O clique que faz o dinheiro entrar no caixa!
   const handleProcessPayout = async (id: string) => {
     try {
       // Dispara o PUT enviando o método padrão 'pix'
@@ -84,7 +84,7 @@ export default function Financial() {
         </p>
       </div>
 
-      {/* 📊 INDICADORES COM PREÇO REAL DO POSTGRES */}
+      {/* INDICADORES COM PREÇO REAL DO POSTGRES */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <BentoCard 
           title="Faturamento Bruto (Entradas)" 
@@ -109,7 +109,7 @@ export default function Financial() {
         />
       </div>
 
-      {/* 📊 TABELA DE CONTAS A RECEBER */}
+      {/*  TABELA DE CONTAS A RECEBER */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-50 bg-gray-50/50">
           <h3 className="text-sm font-bold text-deep-obsidian uppercase tracking-wider">
@@ -144,7 +144,7 @@ export default function Financial() {
                       <td className="py-4 px-6 text-gray-400 text-xs">#{tx.id}</td>
                       <td className="py-4 px-6 font-bold">{tx.description}</td>
                       <td className={`py-4 px-6 font-mono text-xs ${tx.type === 'INCOME' ? 'text-mint-clean font-bold' : 'text-red-500'}`}>
-                        R\$ {tx.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        R$ {tx.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="py-4 px-6 text-xs text-gray-400">{tx.type}</td>
                       <td className="py-4 px-6">

@@ -1,24 +1,55 @@
-/* 🌐 Puxa a fonte premium Inter direto do servidor do Google Fonts */
+/* 🌐 Puxa a fonte premium Inter */
 @import url('https://googleapis.com');
 
 @import "tailwindcss";
 
-/* 🎨 CONFIGURAÇÃO DO TAILWIND V4: Vincula a fonte Inter como a principal do sistema */
+/* 🎨 CONFIGURAÇÃO DO TAILWIND V4: Tokens de Design Reativos */
 @theme {
-  --color-deep-obsidian: #0F172A;   /* Nosso cinza-escuro premium para textos e sidebars */
-  --color-mint-clean: #10B981;      /* Verde vibrante para CTAs e caixa positivo */
-  --color-soft-platinum: #F8FAFC;   /* Branco acinzentado ultra-limpo de fundo */
-  --color-dentistry-teal: #06B6D4;  /* Cian profundo para detalhes da agenda */
+  --color-deep-obsidian: #0F172A;   /* Texto principal e sidebar no modo claro */
+  --color-mint-clean: #10B981;      /* Verde institucional dos CTAs */
+  --color-soft-platinum: #F8FAFC;   /* Fundo ultra-limpo estilo Apple */
+  --color-dentistry-teal: #06B6D4;  /* Destaques da agenda */
   
-  /* Substitui a fonte sem-serifa padrão pela Inter */
   --font-sans: "Inter", "sans-serif";
 }
 
-/* Aplica a fonte e as suavizações de renderização no corpo inteiro do app */
+/* 🌙 VARIÁVEIS DO MODO ESCURO AUTOMÁTICAS (Quando a classe .dark estiver ativa) */
+.dark {
+  --color-soft-platinum: #0F172A;   /* O fundo vira o cinza-escuro elegante */
+  --color-deep-obsidian: #F8FAFC;   /* O texto principal inverte para branco platinum */
+  
+  /* Estilos específicos para os nossos componentes Bento Box no modo escuro */
+  .bg-white {
+    background-color: #1E293B !important; /* Cards ganham o tom Slate-800 */
+    border-color: #334155 !important;     /* Bordas sutis Slate-700 */
+  }
+  
+  header {
+    background-color: #1E293B !important;
+    border-color: #334155 !important;
+  }
+  
+  input, select, textarea {
+    background-color: #334155 !important;
+    border-color: #475569 !important;
+    color: #F8FAFC !important;
+  }
+  
+  th {
+    background-color: #1E293B !important;
+    color: #94A3B8 !important;
+  }
+  
+  tr:hover {
+    background-color: #334155/30 !important;
+  }
+}
+
+/* Aplicação dos estilos globais base */
 body {
   background-color: var(--color-soft-platinum);
   color: var(--color-deep-obsidian);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
