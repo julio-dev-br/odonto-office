@@ -5,7 +5,7 @@ import { defineConfig, env } from "prisma/config";
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
-    path: "prisma/migrations",
+    seed: 'ts-node ./prisma/seed.ts',
   },
   datasource: {
     // Agora o env("DATABASE_URL") vai achar a configuração do seu arquivo .env perfeitamente!

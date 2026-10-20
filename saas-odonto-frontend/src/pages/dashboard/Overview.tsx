@@ -17,7 +17,6 @@ export default function Overview() {
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // MOCK HISTÓRICO DE MESES: Acoplado com o preço dinâmico do mês atual vindo do Postgres!
   const [chartData, setChartData] = useState<any[]>([]);
 
   const fetchDashboardData = async () => {
@@ -44,7 +43,7 @@ export default function Overview() {
       setChartData([
         { month: 'Ago', faturamento: 1200, despesas: 400 },
         { month: 'Set', faturamento: 3400, despesas: 850 },
-        { month: 'Out', faturamento: currentIncome || 850, despesas: currentExpense || 0 } // Mês Atual dinâmico!
+        { month: 'Out', faturamento: currentIncome || 850, despesas: currentExpense || 0 } 
       ]);
 
     } catch (err) {
@@ -75,7 +74,7 @@ export default function Overview() {
       await api.post('/medical-records', {
         patientId: selectedPatientId.toString(),
         procedureId: selectedProcedureId.toString(),
-        professionalId: "3", // ID do Dr. Anderson
+        professionalId: "3", 
         description: description
       });
 

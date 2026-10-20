@@ -33,7 +33,7 @@ export default function Anamnese() {
     }
     try {
       // Bate na nossa rota relacional controlada por clínica do backend NestJS
-      const response = await api.get(`/patients/${patientId}/anamnese`);
+     const response = await api.get(`/anamnese/patient/${patientId}`);
       setActiveAnamnese(response.data || null);
     } catch (err) {
       // Se retornar 404 significa que o paciente está limpo e sem ficha cadastrada ainda
