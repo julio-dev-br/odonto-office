@@ -6,7 +6,8 @@ import {
   DollarSign,
   FileText,
   LogOut,
-  Shield
+  Shield,
+  SettingsIcon
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -18,6 +19,8 @@ export function Sidebar() {
     { path: '/dashboard/agenda', name: 'Agenda', icon: <Calendar size={20} /> },
     { path: '/dashboard/anamnese', name: 'Anamnese', icon: <FileText size={20} /> },
     { path: '/dashboard/financial', name: 'Financeiro', icon: <DollarSign size={20} /> },
+    { path: '/dashboard/settings', name: 'Settings', icon: <SettingsIcon size={20} /> },
+
   ];
 
   const handleLogout = () => {

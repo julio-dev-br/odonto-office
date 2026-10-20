@@ -19,7 +19,6 @@ export default function Financial() {
   const [balance, setBalance] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
-  // 📥 FUNÇÃO DE LEITURA CONSOLIDADA DO POSTGRES
   const fetchFinancialData = async () => {
     try {
       setIsLoading(true);
@@ -53,24 +52,22 @@ export default function Financial() {
     fetchFinancialData();
   }, []);
 
-  // 📤 GATILHO DE CRIAÇÃO DE DESPESA (POST): Grava a saída avulsa direto na API!
   const handleCreateExpense = async (expenseData: any) => {
     try {
       await api.post('/financial-transactions', {
         ...expenseData,
-        status: 'paid', // 💸 Despesas manuais da secretária nascem pagas por padrão operacional!
+        status: 'paid',
         paymentMethod: 'pix'
       });
 
       toast.success('Despesa operada e debitada do caixa!');
-      await fetchFinancialData(); // Recarrega os Bento Cards e as tabelas na hora!
+      await fetchFinancialData(); 
     } catch (err) {
       console.error('Erro ao registrar despesa avulsa:', err);
       toast.error('Não foi possível processar lançamento de custo.');
     }
   };
 
-  // 💰 FUNÇÃO DE BAIXA REAL (PUT /pay): Recebimento Pix de entradas
   const handleProcessPayout = async (id: string) => {
     try {
       await api.put(`/financial-transactions/${id}/pay`, { paymentMethod: 'pix' });
@@ -144,7 +141,7 @@ export default function Financial() {
                         <td className="py-4 px-6 text-gray-400 text-xs">#{tx.id}</td>
                         <td className="py-4 px-6 font-bold">{tx.description}</td>
                         <td className={`py-4 px-6 font-mono text-xs ${isIncome ? 'text-mint-clean font-bold' : 'text-red-500'}`}>
-                          {isIncome ? '+' : '-'} R\$ {tx.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                          {isIncome ? '+' : '-'} R$ {tx.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </td>
                         <td className="py-4 px-6">
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider w-fit ${

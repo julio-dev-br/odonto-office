@@ -13,6 +13,7 @@ import Patients from './pages/dashboard/Patients'
 import Agenda from './pages/dashboard/Agenda'
 import Financial from './pages/dashboard/Financial'
 import Anamnese from './pages/dashboard/Anamnese'
+import Settings from './pages/dashboard/Settings';
 
 const router = createBrowserRouter([
   {
@@ -30,9 +31,9 @@ const router = createBrowserRouter([
           { path: 'patients', element: <Patients /> },
           { path: 'agenda', element: <Agenda /> },
           { path: 'financial', element: <Financial /> },
-          {
-            path: 'anamnese', element: <Anamnese />,
-          },
+          { path: 'anamnese', element: <Anamnese />, },
+          { path: 'settings', element: <Settings /> },
+
         ],
       },
     ],

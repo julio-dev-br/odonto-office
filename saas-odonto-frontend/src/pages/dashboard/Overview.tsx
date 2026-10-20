@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DollarSign, TrendingUp, ArrowDownCircle, Users, FileSpreadsheet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../services/api';
 import { BentoCard } from '../../components/BentoCard';
-import { FinancialChart } from '../../components/FinancialChart'; 
+import { FinancialChart } from '../../components/FinancialChart';
 
 export default function Overview() {
+  const navigate = useNavigate();
+
   const [balance, setBalance] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
   const [patients, setPatients] = useState<any[]>([]);
   const [procedures, setProcedures] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estados do formulário de Prontuário
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [selectedProcedureId, setSelectedProcedureId] = useState('');
   const [description, setDescription] = useState('');
@@ -19,46 +21,90 @@ export default function Overview() {
 
   const [chartData, setChartData] = useState<any[]>([]);
 
+  // 🛡️ EXTRAÇÃO E DECODIFICAÇÃO CRIPTOGRÁFICA DO JWT NATAL DO SAAS
+  const token = localStorage.getItem('@OdontoOffice:token');
+  const tenantIdHeader = localStorage.getItem('@OdontoOffice:tenantId') || '1';
+  
+  let loggedProfessionalId: string | null = null;
+
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      const payload = JSON.parse(jsonPayload);
+      loggedProfessionalId = payload.sub ? payload.sub.toString() : null;
+    } catch (e) {
+      console.error('Erro ao decodificar token de sessão:', e);
+    }
+  }
+
+  // 📥 FUNÇÃO DE CARGA DE DADOS DO POSTGRES
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
-      
-      const balanceResponse = await api.get('/financial-transactions/balance');
-      const currentIncome = Number(balanceResponse.data.totalIncome || 0);
-      const currentExpense = Number(balanceResponse.data.totalExpense || 0);
 
+      // Objeto de configuração contendo os cabeçalhos Multi-Tenant obrigatórios
+      const config = {
+        headers: { 'X-Tenant-ID': tenantIdHeader }
+      };
+
+      const balanceResponse = await api.get('/financial-transactions/balance', config);
       setBalance({
-        totalIncome: currentIncome,
-        totalExpense: currentExpense,
+        totalIncome: Number(balanceResponse.data.totalIncome || 0),
+        totalExpense: Number(balanceResponse.data.totalExpense || 0),
         netBalance: Number(balanceResponse.data.netBalance || 0)
       });
 
-      const patientsResponse = await api.get('/patients');
+      const patientsResponse = await api.get('/patients', config);
       setPatients(patientsResponse.data);
 
-      const proceduresResponse = await api.get('/dental-procedures');
+      const proceduresResponse = await api.get('/dental-procedures', config);
       setProcedures(proceduresResponse.data);
 
-      // Injeta os dados dinâmicos do banco no histórico do gráfico para manter o balanço real!
-      setChartData([
-        { month: 'Ago', faturamento: 1200, despesas: 400 },
-        { month: 'Set', faturamento: 3400, despesas: 850 },
-        { month: 'Out', faturamento: currentIncome || 850, despesas: currentExpense || 0 } 
-      ]);
+      const chartResponse = await api.get('/financial-transactions/chart', config);
+      setChartData(chartResponse.data || []);
 
     } catch (err) {
       console.error('Erro ao consolidar indicadores da dashboard:', err);
+      toast.error('Falha ao sincronizar indicadores com o servidor.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 🛡️ GATILHO 1 (SEGURANÇA): Monitora a validade da sessão e expulsa se necessário
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (!token || !loggedProfessionalId) {
+      toast.error('Sessão expirada ou inválida. Por favor, refaça o login.');
+      localStorage.clear();
+      navigate('/login');
+    }
+  }, [token, loggedProfessionalId, navigate]);
 
+  // 📊 GATILHO 2 (CARGA DE DADOS): Executa apenas quando a sessão é carregada com sucesso
+  useEffect(() => {
+    if (token && loggedProfessionalId) {
+      fetchDashboardData();
+    }
+  }, [token, loggedProfessionalId]);
+
+  // 📤 ASSINATURA DE PRONTUÁRIO CLÍNICO (POST)
   const handleSignMedicalRecord = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!loggedProfessionalId) {
+      toast.error('Assinatura digital bloqueada por falta de credenciais.');
+      navigate('/login');
+      return;
+    }
+
     if (!selectedPatientId) {
       toast.error('Por favor, selecione um paciente válido.');
       return;
@@ -71,18 +117,21 @@ export default function Overview() {
 
     try {
       setIsSubmitting(true);
+
       await api.post('/medical-records', {
         patientId: selectedPatientId.toString(),
         procedureId: selectedProcedureId.toString(),
-        professionalId: "3", 
+        professionalId: loggedProfessionalId,
         description: description
+      }, {
+        headers: { 'X-Tenant-ID': tenantIdHeader }
       });
 
       toast.success('Prontuário assinado e faturamento injetado!');
       setDescription('');
       setSelectedPatientId('');
       setSelectedProcedureId('');
-      
+
       await fetchDashboardData();
     } catch (err: any) {
       console.error('Erro ao salvar evolução clínica:', err);
@@ -95,7 +144,7 @@ export default function Overview() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      
+
       {/* Header */}
       <div>
         <h1 className="text-3xl font-extrabold text-deep-obsidian tracking-tight">
@@ -130,7 +179,7 @@ export default function Overview() {
         <h3 className="text-base font-bold text-deep-obsidian mb-4 flex items-center gap-2">
           <FileSpreadsheet size={18} className="text-dentistry-teal" /> Assinar Evolução Clínica (Prontuário Eletrônico)
         </h3>
-        
+
         <form onSubmit={handleSignMedicalRecord} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
