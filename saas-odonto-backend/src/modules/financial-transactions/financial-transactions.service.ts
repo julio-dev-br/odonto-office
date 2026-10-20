@@ -3,12 +3,12 @@ import { PrismaService } from '../../core/database/prisma.service';
 
 @Injectable()
 export class FinancialTransactionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // 1. Cria um lançamento (Receita de Paciente ou Despesa da Clínica)
   async create(body: any) {
     const client = this.prisma.tenantClient as any;
-    
+
     return client.financialTransaction.create({
       data: {
         patientId: body.patientId ? BigInt(body.patientId) : null,
@@ -26,7 +26,7 @@ export class FinancialTransactionsService {
   // 2. Retorna o extrato de movimentações completo da clínica atual
   async findAll() {
     const client = this.prisma.tenantClient as any;
-    
+
     return client.financialTransaction.findMany({
       include: {
         patient: {
@@ -65,7 +65,7 @@ export class FinancialTransactionsService {
     };
   }
 
-    //Transforma uma transação pendente em PAGA!
+  //Transforma uma transação pendente em PAGA!
   async payout(id: string, body: any) {
     const client = this.prisma.tenantClient as any;
     const model = client.financialTransaction || client.FinancialTransaction;
@@ -89,4 +89,44 @@ export class FinancialTransactionsService {
       },
     });
   }
+
+  async getChartData() {
+    const client = this.prisma.tenantClient as any;
+    const model = client.financialTransaction || client.FinancialTransaction;
+
+    // 📥 Busca todos os lançamentos pagos/liquidados do Tenant atual
+    const transactions = await model.findMany({
+      where: { status: 'paid' },
+      select: {
+        amount: true,
+        type: true,
+        dueDate: true
+      },
+      orderBy: { dueDate: 'asc' }
+    });
+
+    const monthsLookup: { [key: string]: { month: string; faturamento: number; despesas: number } } = {};
+    const labelMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    transactions.forEach((tx: any) => {
+      const date = new Date(tx.dueDate);
+      const monthLabel = labelMeses[date.getMonth()]; // Transforma o número do mês em sigla (Ex: 'Out')
+
+      if (!monthsLookup[monthLabel]) {
+        monthsLookup[monthLabel] = { month: monthLabel, faturamento: 0, despesas: 0 };
+      }
+
+      const amountNum = Number(tx.amount || 0);
+
+      if (tx.type === 'INCOME') {
+        monthsLookup[monthLabel].faturamento += amountNum;
+      } else if (tx.type === 'EXPENSE') {
+        monthsLookup[monthLabel].despesas += amountNum;
+      }
+    });
+
+    // Retorna o objeto convertido em Array limpo para o Axios ler
+    return Object.values(monthsLookup);
+  }
+
 }

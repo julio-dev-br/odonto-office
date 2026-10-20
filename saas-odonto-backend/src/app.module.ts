@@ -16,6 +16,7 @@ import { ClinicSitesModule } from './modules/clinic-sites/clinic-sites.module';
 import { DentalProceduresModule } from './modules/dental-procedures/dental-procedures.module';
 import { ProfessionalsModule } from './modules/professionals/professionals.module';
 import { AnamneseModule } from './modules/anamnese/anamnese.module';
+import { UsersModule } from './modules/users/users.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -36,7 +37,8 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     ClinicSitesModule,
     DentalProceduresModule,
     ProfessionalsModule,
-    AnamneseModule
+    AnamneseModule,
+    UsersModule
   ],
   controllers: [AppController],
   providers: [
