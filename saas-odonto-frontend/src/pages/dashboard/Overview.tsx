@@ -21,7 +21,6 @@ export default function Overview() {
 
   const [chartData, setChartData] = useState<any[]>([]);
 
-  // 🛡️ EXTRAÇÃO E DECODIFICAÇÃO CRIPTOGRÁFICA DO JWT NATAL DO SAAS
   const token = localStorage.getItem('@OdontoOffice:token');
   const tenantIdHeader = localStorage.getItem('@OdontoOffice:tenantId') || '1';
   
@@ -39,18 +38,21 @@ export default function Overview() {
       );
 
       const payload = JSON.parse(jsonPayload);
-      loggedProfessionalId = payload.sub ? payload.sub.toString() : null;
+      
+      if (payload.sub && payload.sub.toString() === "3") {
+        loggedProfessionalId = "1"; 
+      } else {
+        loggedProfessionalId = payload.professionalId ? payload.professionalId.toString() : "1";
+      }
     } catch (e) {
       console.error('Erro ao decodificar token de sessão:', e);
     }
   }
 
-  // 📥 FUNÇÃO DE CARGA DE DADOS DO POSTGRES
   const fetchDashboardData = async () => {
     try {
       setIsLoading(true);
 
-      // Objeto de configuração contendo os cabeçalhos Multi-Tenant obrigatórios
       const config = {
         headers: { 'X-Tenant-ID': tenantIdHeader }
       };
@@ -79,7 +81,6 @@ export default function Overview() {
     }
   };
 
-  // 🛡️ GATILHO 1 (SEGURANÇA): Monitora a validade da sessão e expulsa se necessário
   useEffect(() => {
     if (!token || !loggedProfessionalId) {
       toast.error('Sessão expirada ou inválida. Por favor, refaça o login.');
@@ -88,14 +89,13 @@ export default function Overview() {
     }
   }, [token, loggedProfessionalId, navigate]);
 
-  // 📊 GATILHO 2 (CARGA DE DADOS): Executa apenas quando a sessão é carregada com sucesso
   useEffect(() => {
     if (token && loggedProfessionalId) {
       fetchDashboardData();
     }
   }, [token, loggedProfessionalId]);
 
-  // 📤 ASSINATURA DE PRONTUÁRIO CLÍNICO (POST)
+
   const handleSignMedicalRecord = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -171,10 +171,10 @@ export default function Overview() {
         </div>
       )}
 
-      {/* 🚀 GRÁFICO DE EVOLUÇÃO FINANCEIRA GEOMÉTRICA (Injetado com Sucesso!) */}
+      {/* GRÁFICO DE EVOLUÇÃO FINANCEIRA */}
       {!isLoading && <FinancialChart data={chartData} />}
 
-      {/* 🩺 REGISTRO CLÍNICO AUTOMATIZADO */}
+      {/* REGISTRO CLÍNICO AUTOMATIZADO */}
       <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
         <h3 className="text-base font-bold text-deep-obsidian mb-4 flex items-center gap-2">
           <FileSpreadsheet size={18} className="text-dentistry-teal" /> Assinar Evolução Clínica (Prontuário Eletrônico)
@@ -201,7 +201,7 @@ export default function Overview() {
               <select required value={selectedProcedureId} onChange={(e) => setSelectedProcedureId(e.target.value)} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all cursor-pointer">
                 <option value="">-- Selecione o Procedimento Realizado --</option>
                 {procedures.map((proc) => (
-                  <option key={proc.id} value={proc.id.toString()}>{proc.name} — R\$ {Number(proc.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</option>
+                  <option key={proc.id} value={proc.id.toString()}>{proc.name} — R$ {Number(proc.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</option>
                 ))}
               </select>
             </div>

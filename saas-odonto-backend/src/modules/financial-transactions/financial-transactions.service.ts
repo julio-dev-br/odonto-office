@@ -5,7 +5,6 @@ import { PrismaService } from '../../core/database/prisma.service';
 export class FinancialTransactionsService {
   constructor(private readonly prisma: PrismaService) { }
 
-  // 1. Cria um lançamento (Receita de Paciente ou Despesa da Clínica)
   async create(body: any) {
     const client = this.prisma.tenantClient as any;
 
@@ -41,36 +40,40 @@ export class FinancialTransactionsService {
 
   async getBalance() {
     const client = this.prisma.tenantClient as any;
+    const model = client.financialTransaction || client.FinancialTransaction;
 
-    // Busca todas as transações financeiras da clínica atual (isolado pelo token)
-    const transactions = await client.financialTransaction.findMany();
-
-    let totalIncome = 0;
-    let totalExpense = 0;
-
-    // Converte e soma os valores de forma segura
-    transactions.forEach((tx: any) => {
-      const amountNum = Number(tx.amount);
-      if (tx.type === 'INCOME') {
-        totalIncome += amountNum;
-      } else if (tx.type === 'EXPENSE') {
-        totalExpense += amountNum;
-      }
+   
+    const incomeAggregation = await model.aggregate({
+      _sum: { amount: true },
+      where: {
+        type: 'INCOME',
+        status: 'paid',
+      },
     });
 
+    const expenseAggregation = await model.aggregate({
+      _sum: { amount: true },
+      where: {
+        type: 'EXPENSE',
+        status: 'paid', 
+      },
+    });
+
+    const totalIncome = Number(incomeAggregation._sum.amount || 0);
+    const totalExpense = Number(expenseAggregation._sum.amount || 0);
+    const netBalance = totalIncome - totalExpense;
+
     return {
-      totalIncome: Number(totalIncome.toFixed(2)),
-      totalExpense: Number(totalExpense.toFixed(2)),
-      netBalance: Number((totalIncome - totalExpense).toFixed(2)),
+      totalIncome,
+      totalExpense,
+      netBalance,
     };
   }
 
-  //Transforma uma transação pendente em PAGA!
   async payout(id: string, body: any) {
     const client = this.prisma.tenantClient as any;
     const model = client.financialTransaction || client.FinancialTransaction;
 
-    // Busca a transação garantindo o isolamento Multi-Tenant da clínica atual
     const transaction = await model.findFirst({
       where: { id: BigInt(id) },
     });
@@ -79,12 +82,11 @@ export class FinancialTransactionsService {
       throw new Error('Financial transaction not found for this clinic.');
     }
 
-    // Executa a atualização com a data do recebimento e a forma de pagamento
     return model.update({
       where: { id: transaction.id },
       data: {
         status: 'paid', // Transforma o status para PAGO!
-        paymentDate: body.paymentDate ? new Date(body.paymentDate) : new Date(), // Padrão: Hoje
+        paymentDate: body.paymentDate ? new Date(body.paymentDate) : new Date(), 
         paymentMethod: body.paymentMethod, // ex: "pix", "credit_card", "cash"
       },
     });
@@ -94,7 +96,6 @@ export class FinancialTransactionsService {
     const client = this.prisma.tenantClient as any;
     const model = client.financialTransaction || client.FinancialTransaction;
 
-    // 📥 Busca todos os lançamentos pagos/liquidados do Tenant atual
     const transactions = await model.findMany({
       where: { status: 'paid' },
       select: {
@@ -110,7 +111,7 @@ export class FinancialTransactionsService {
 
     transactions.forEach((tx: any) => {
       const date = new Date(tx.dueDate);
-      const monthLabel = labelMeses[date.getMonth()]; // Transforma o número do mês em sigla (Ex: 'Out')
+      const monthLabel = labelMeses[date.getMonth()];
 
       if (!monthsLookup[monthLabel]) {
         monthsLookup[monthLabel] = { month: monthLabel, faturamento: 0, despesas: 0 };
@@ -125,7 +126,6 @@ export class FinancialTransactionsService {
       }
     });
 
-    // Retorna o objeto convertido em Array limpo para o Axios ler
     return Object.values(monthsLookup);
   }
 

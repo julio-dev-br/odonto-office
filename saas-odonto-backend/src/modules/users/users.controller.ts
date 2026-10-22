@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -17,4 +17,11 @@ export class UsersController {
   async create(@Body() body: any) {
     return this.usersService.create(body);
   }
+
+  @Get()
+  @ApiOperation({ summary: 'Lista todos os colaboradores vinculados à clínica' })
+  async findAll() {
+    return this.usersService.findAll();
+  }
+
 }

@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service';
-import { tenantStorage } from '../../common/tenant/tenant.storage';
 
 @Injectable()
 export class MedicalRecordsService {
@@ -9,6 +8,16 @@ export class MedicalRecordsService {
   async create(dto: any) {
     const client = this.prisma.tenantClient as any;
     const medicalRecordModel = client.medicalRecord || client.MedicalRecord;
+    const procedureModel = client.dentalProcedure || client.DentalProcedure;
+    const financialModel = client.financialTransaction || client.FinancialTransaction;
+
+    if (!medicalRecordModel || !procedureModel || !financialModel) {
+      throw new BadRequestException('Falha de inicialização relacional no Prisma Client mestre.');
+    }
+
+    const patientIdBigInt = BigInt(dto.patientId);
+    const procedureIdBigInt = BigInt(dto.procedureId);
+    const professionalIdBigInt = BigInt(dto.professionalId);
 
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
@@ -18,8 +27,8 @@ export class MedicalRecordsService {
 
     const existingRecord = await medicalRecordModel.findFirst({
       where: {
-        patientId: dto.patientId.toString(),
-        procedureId: dto.procedureId.toString(),
+        patientId: patientIdBigInt,
+        procedureId: procedureIdBigInt,
         createdAt: {
           gte: startOfDay,
           lte: endOfDay
@@ -27,19 +36,40 @@ export class MedicalRecordsService {
       }
     });
 
-
     if (existingRecord) {
       throw new BadRequestException('Este procedimento já foi registrado e assinado para este paciente na data de hoje.');
     }
 
+    const procedureData = await procedureModel.findUnique({
+      where: { id: procedureIdBigInt }
+    });
+
+    if (!procedureData) {
+      throw new NotFoundException('Procedimento clínico não localizado no catálogo.');
+    }
+
     const record = await medicalRecordModel.create({
       data: {
-        patientId: dto.patientId.toString(),
-        procedureId: dto.procedureId.toString(),
-        professionalId: dto.professionalId.toString(),
+        patientId: patientIdBigInt,
+        procedureId: procedureIdBigInt,
+        professionalId: professionalIdBigInt,
         description: dto.description,
       }
     });
+
+    await financialModel.create({
+      data: {
+        patientId: patientIdBigInt,
+        description: `Faturamento automático: ${procedureData.name}`,
+        amount: procedureData.price, // Herda o preço real do Postgres!
+        type: 'INCOME',
+        status: 'pending', 
+        dueDate: new Date(),
+        paymentMethod: 'pix'
+      }
+    });
+
+    return record;
   }
 
   async findAll() {
@@ -61,5 +91,4 @@ export class MedicalRecordsService {
       orderBy: { createdAt: 'desc' },
     });
   }
-  
 }

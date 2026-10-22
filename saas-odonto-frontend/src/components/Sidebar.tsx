@@ -7,7 +7,8 @@ import {
   FileText,
   LogOut,
   Shield,
-  SettingsIcon
+  SettingsIcon,
+  User
 } from 'lucide-react';
 
 export function Sidebar() {
@@ -15,11 +16,12 @@ export function Sidebar() {
 
   const menuItems = [
     { path: '/dashboard', name: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { path: '/dashboard/patients', name: 'Pacientes', icon: <Users size={20} /> },
+    { path: '/dashboard/patients', name: 'Pacientes', icon: <User size={20} /> },
     { path: '/dashboard/agenda', name: 'Agenda', icon: <Calendar size={20} /> },
     { path: '/dashboard/anamnese', name: 'Anamnese', icon: <FileText size={20} /> },
     { path: '/dashboard/financial', name: 'Financeiro', icon: <DollarSign size={20} /> },
-    { path: '/dashboard/settings', name: 'Settings', icon: <SettingsIcon size={20} /> },
+    { path: '/dashboard/queue', name: 'Fila da Recepção', icon: <Users size={20} /> },
+    { path: '/dashboard/settings', name: 'Configurações', icon: <SettingsIcon size={20} /> },
 
   ];
 

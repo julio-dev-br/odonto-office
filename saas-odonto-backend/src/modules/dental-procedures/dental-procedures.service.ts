@@ -5,7 +5,6 @@ import { PrismaService } from '../../core/database/prisma.service';
 export class DentalProceduresService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // 1. Cadastra um novo procedimento no catálogo da clínica logada
   async create(body: any) {
     const client = this.prisma.tenantClient as any;
     const model = client.dentalProcedure || client.DentalProcedure;
@@ -21,14 +20,13 @@ export class DentalProceduresService {
     });
   }
 
-  // 2. Lista todos os procedimentos ativos do catálogo da clínica atual
   async findAll() {
     const client = this.prisma.tenantClient as any;
     const model = client.dentalProcedure || client.DentalProcedure;
 
     return model.findMany({
       where: { active: true },
-      orderBy: { name: 'asc' }, // Lista em ordem alfabética sênior
+      orderBy: { name: 'asc' },
     });
   }
 }

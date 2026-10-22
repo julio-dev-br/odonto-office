@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as pg from 'pg';
 import * as dotenv from 'dotenv';
-import * as bcrypt from 'bcrypt'; 
+import * as bcrypt from 'bcrypt';
 
 dotenv.config();
 
@@ -42,11 +42,28 @@ async function main() {
       tenantId,
       name: 'Dr. Anderson Silva',
       email: 'anderson@sorrisoperfeito.com',
-      password: hashedDefaultPassword, // Senha criptografada segura!
+      password: hashedDefaultPassword,
       role: 'DENTIST',
       active: true
     } as any
   });
+
+  // 🩺 3. RELAÇÃO COMPLEMENTAR: Cria o Dr. Anderson na tabela de Profissionais/Dentistas!
+  console.log('🩺 Semeando Registro Profissional do Dr. Anderson...');
+  await prisma.professional.upsert({
+    where: { id: BigInt(1) } as any, // ID único do profissional
+    update: {},
+    create: {
+      id: BigInt(1),
+      tenantId,
+      userId: BigInt(3), // Amarra com o ID do usuário que criamos acima!
+      name: 'Dr. Anderson Silva',
+      cro: 'CRO-SP 12345', // Registro obrigatório do conselho!
+      specialty: 'Ortodontia e Implantodontia',
+      isActive: true
+    } as any
+  });
+
 
   // Limpa as movimentações anteriores para evitar duplicidades no gráfico
   await prisma.financialTransaction.deleteMany({

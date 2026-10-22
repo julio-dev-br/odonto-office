@@ -25,7 +25,7 @@ model Tenant {
   medicalRecords   MedicalRecord[]
   financialTrans   FinancialTransaction[]
   dentalProcedures DentalProcedure[]
-  anamneses Anamnese[]
+  anamneses        Anamnese[]
 
   @@map("tenants")
 }
@@ -51,15 +51,15 @@ model User {
 
 // Dentists / Professionals
 model Professional {
-  id             BigInt          @id @default(autoincrement())
-  tenantId       BigInt          @map("tenant_id")
-  userId         BigInt?         @map("user_id")
-  name           String          @db.VarChar(200)
-  cro            String?         @db.VarChar(50)  // Registro do Conselho Regional de Odontologia
-  specialty      String?         @db.VarChar(100) // ex: "Ortodontia", "Endodontia"
-  active         Boolean         @default(true)
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @default(now()) @updatedAt @map("updated_at")
+  id        BigInt   @id @default(autoincrement())
+  tenantId  BigInt   @map("tenant_id")
+  userId    BigInt?  @map("user_id")
+  name      String   @db.VarChar(200)
+  cro       String?  @db.VarChar(50) // Registro do Conselho Regional de Odontologia
+  specialty String?  @db.VarChar(100) // ex: "Ortodontia", "Endodontia"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
   tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -107,50 +107,49 @@ model Patient {
   medicalRecords MedicalRecord[]
   financialTrans FinancialTransaction[]
 
-  anamnese  Anamnese?
-
+  anamnese Anamnese?
 
   @@map("patients")
 }
 
 // Appointments / Agenda
 model Appointment {
-  id             BigInt        @id @default(autoincrement())
-  tenantId       BigInt        @map("tenant_id")
-  patientId      BigInt        @map("patient_id")
-  professionalId BigInt        @map("professional_id") 
-  startAt        DateTime      @map("start_at") @db.Timestamp()
-  endAt          DateTime      @map("end_at") @db.Timestamp()
-  type           String?       @db.VarChar(100)
-  status         String        @default("scheduled") @db.VarChar(30)
-  notes          String?       @db.Text
-  createdAt      DateTime      @default(now()) @map("created_at")
-  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at")
+  id             BigInt   @id @default(autoincrement())
+  tenantId       BigInt   @map("tenant_id")
+  patientId      BigInt   @map("patient_id")
+  professionalId BigInt   @map("professional_id")
+  startAt        DateTime @map("start_at") @db.Timestamp()
+  endAt          DateTime @map("end_at") @db.Timestamp()
+  type           String?  @db.VarChar(100)
+  status         String   @default("scheduled") // scheduled, waiting, in_attendance, completed)
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
-  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  professional   Professional  @relation(fields: [professionalId], references: [id], onDelete: Cascade) // 🚀 Nova amarração!
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient      Patient      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  professional Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade) // 🚀 Nova amarração!
 
   @@map("appointments")
 }
 
 // Medical Records / Clinical Evolution (Updated with Procedure Relation)
 model MedicalRecord {
-  id             BigInt           @id @default(autoincrement())
-  tenantId       BigInt           @map("tenant_id")
-  patientId      BigInt           @map("patient_id")
-  professionalId BigInt           @map("professional_id") 
-  procedureId    BigInt?          @map("procedure_id")
-  description    String           @db.Text
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
+  id             BigInt   @id @default(autoincrement())
+  tenantId       BigInt   @map("tenant_id")
+  patientId      BigInt   @map("patient_id")
+  professionalId BigInt   @map("professional_id")
+  procedureId    BigInt?  @map("procedure_id")
+  description    String   @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
 
   // Relacionamentos
-  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient        Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  procedure      DentalProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
-  professional   Professional     @relation(fields: [professionalId], references: [id], onDelete: Cascade) // 🚀 Nova amarração!
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient      Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  procedure    DentalProcedure? @relation(fields: [procedureId], references: [id], onDelete: SetNull)
+  professional Professional     @relation(fields: [professionalId], references: [id], onDelete: Cascade) // 🚀 Nova amarração!
 
   @@map("medical_records")
 }
@@ -209,10 +208,8 @@ model Anamnese {
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   // 🚀 SOLDADO: Amarração de Integridade estrita Multi-Tenant exigida pelo seu proxy core!
-  tenant               Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  patient              Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@map("anamnese")
 }
-
-

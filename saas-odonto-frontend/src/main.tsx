@@ -14,6 +14,7 @@ import Agenda from './pages/dashboard/Agenda'
 import Financial from './pages/dashboard/Financial'
 import Anamnese from './pages/dashboard/Anamnese'
 import Settings from './pages/dashboard/Settings';
+import ReceptionQueue from './pages/dashboard/ReceptionQueue'
 
 const router = createBrowserRouter([
   {
@@ -33,7 +34,7 @@ const router = createBrowserRouter([
           { path: 'financial', element: <Financial /> },
           { path: 'anamnese', element: <Anamnese />, },
           { path: 'settings', element: <Settings /> },
-
+          { path: 'queue', element: <ReceptionQueue /> },
         ],
       },
     ],

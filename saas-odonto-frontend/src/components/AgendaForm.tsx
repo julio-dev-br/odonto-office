@@ -10,34 +10,46 @@ export function AgendaForm({ onAddAppointment }: AgendaFormProps) {
   // Estados dinâmicos que vão receber os dados reais do Postgres
   const [patients, setPatients] = useState<any[]>([]);
   const [professionals, setProfessionals] = useState<any[]>([]);
-  const [procedures, setProcedures] = useState<any[]>([]); // 🚀 Nova lista de procedimentos!
+  const [procedures, setProcedures] = useState<any[]>([]); 
 
   // Estados dos inputs mapeados com os IDs do banco
   const [patientId, setPatientId] = useState('');
   const [professionalId, setProfessionalId] = useState('');
-  const [procedureId, setProcedureId] = useState(''); // 🚀 Guarda o ID real do procedimento
+  const [procedureId, setProcedureId] = useState(''); 
   const [startAt, setStartAt] = useState('');
   const [endAt, setEndAt] = useState('');
   const [notes, setNotes] = useState('');
 
-  // CAPTURA DE DADOS REAIS DO POSTGRESQL VIA AXIOS
+  // 🛡️ CAPTURA DE DADOS REAIS DO POSTGRESQL VIA AXIOS COM HEADERS MULTI-TENANT
   useEffect(() => {
     async function loadFormContext() {
       try {
-        // 1. Busca os pacientes reais ativos da clínica
-        const patientsRes = await api.get('/patients');
-        setPatients(patientsRes.data);
-        if (patientsRes.data.length > 0) setPatientId(patientsRes.data[0].id.toString());
+        // Captura a identificação da clínica ativa salva no seu cofre local
+        const tenantIdHeader = localStorage.getItem('@OdontoOffice:tenantId') || '1';
+        const config = {
+          headers: { 'X-Tenant-ID': tenantIdHeader }
+        };
 
-        // 2. Busca os profissionais/dentistas reais cadastrados
-        const professionalsRes = await api.get('/professionals');
-        setProfessionals(professionalsRes.data);
-        if (professionalsRes.data.length > 0) setProfessionalId(professionalsRes.data[0].id.toString());
+        // 🚀 1. Busca os pacientes reais ativos da clínica passando o Header
+        const patientsRes = await api.get('/patients', config);
+        setPatients(patientsRes.data || []);
+        if (patientsRes.data && patientsRes.data.length > 0) {
+          setPatientId(patientsRes.data[0].id.toString());
+        }
 
-        // 3. Busca o catálogo de procedimentos reais da clínica
-        const proceduresRes = await api.get('/dental-procedures');
-        setProcedures(proceduresRes.data);
-        if (proceduresRes.data.length > 0) setProcedureId(proceduresRes.data[0].id.toString());
+        // 🚀 2. Busca os profissionais/dentistas reais cadastrados passando o Header
+        const professionalsRes = await api.get('/professionals', config);
+        setProfessionals(professionalsRes.data || []);
+        if (professionalsRes.data && professionalsRes.data.length > 0) {
+          setProfessionalId(professionalsRes.data[0].id.toString());
+        }
+
+        // 🚀 3. Busca o catálogo de procedimentos reais da clínica passando o Header
+        const proceduresRes = await api.get('/dental-procedures', config);
+        setProcedures(proceduresRes.data || []);
+        if (proceduresRes.data && proceduresRes.data.length > 0) {
+          setProcedureId(proceduresRes.data[0].id.toString());
+        }
 
       } catch (err) {
         console.error('Erro ao carregar contexto do banco de dados para a agenda:', err);
