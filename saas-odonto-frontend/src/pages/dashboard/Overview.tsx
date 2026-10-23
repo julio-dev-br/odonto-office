@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { api } from '../../services/api';
 import { BentoCard } from '../../components/BentoCard';
 import { FinancialChart } from '../../components/FinancialChart';
+import { getActiveSession } from '../../utils/auth'; 
 
 export default function Overview() {
   const navigate = useNavigate();
@@ -18,36 +19,10 @@ export default function Overview() {
   const [selectedProcedureId, setSelectedProcedureId] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [chartData, setChartData] = useState<any[]>([]);
 
+  const { professionalId: loggedProfessionalId, tenantId: tenantIdHeader } = getActiveSession();
   const token = localStorage.getItem('@OdontoOffice:token');
-  const tenantIdHeader = localStorage.getItem('@OdontoOffice:tenantId') || '1';
-  
-  let loggedProfessionalId: string | null = null;
-
-  if (token) {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-
-      const payload = JSON.parse(jsonPayload);
-      
-      if (payload.sub && payload.sub.toString() === "3") {
-        loggedProfessionalId = "1"; 
-      } else {
-        loggedProfessionalId = payload.professionalId ? payload.professionalId.toString() : "1";
-      }
-    } catch (e) {
-      console.error('Erro ao decodificar token de sessão:', e);
-    }
-  }
 
   const fetchDashboardData = async () => {
     try {
@@ -65,17 +40,16 @@ export default function Overview() {
       });
 
       const patientsResponse = await api.get('/patients', config);
-      setPatients(patientsResponse.data);
+      setPatients(patientsResponse.data || []);
 
       const proceduresResponse = await api.get('/dental-procedures', config);
-      setProcedures(proceduresResponse.data);
+      setProcedures(proceduresResponse.data || []);
 
       const chartResponse = await api.get('/financial-transactions/chart', config);
       setChartData(chartResponse.data || []);
 
     } catch (err) {
       console.error('Erro ao consolidar indicadores da dashboard:', err);
-      toast.error('Falha ao sincronizar indicadores com o servidor.');
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +63,7 @@ export default function Overview() {
     }
   }, [token, loggedProfessionalId, navigate]);
 
+ 
   useEffect(() => {
     if (token && loggedProfessionalId) {
       fetchDashboardData();
@@ -121,7 +96,7 @@ export default function Overview() {
       await api.post('/medical-records', {
         patientId: selectedPatientId.toString(),
         procedureId: selectedProcedureId.toString(),
-        professionalId: loggedProfessionalId,
+        professionalId: loggedProfessionalId, 
         description: description
       }, {
         headers: { 'X-Tenant-ID': tenantIdHeader }

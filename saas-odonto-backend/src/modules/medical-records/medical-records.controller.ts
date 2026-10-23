@@ -1,22 +1,22 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { MedicalRecordsService } from './medical-records.service';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CreateMedicalRecordDto } from './dto/create-medical-record.dto';
 
 @ApiTags('Medical Records (Prontuários)')
 @ApiBearerAuth()
 @UseGuards(RolesGuard)
 @Controller('medical-records')
 export class MedicalRecordsController {
-  constructor(private readonly medicalRecordsService: MedicalRecordsService) {}
+  constructor(private readonly medicalRecordsService: MedicalRecordsService) { }
 
   @Post()
   @Roles('ADMIN', 'DENTIST')
-  @ApiOperation({ summary: 'Add a clinical evolution entry and trigger auto finance charge' })
-  async create(@Body() body: any) {
-    // Passa o body direto, a inteligência do Tenant agora é resolvida de forma invisível pelo cofre no Service!
-    return this.medicalRecordsService.create(body);
+  @ApiOperation({ summary: 'Registra e assina digitalmente a evolução clínica do paciente' })
+  async create(@Body() createMedicalRecordDto: CreateMedicalRecordDto) {
+    return this.medicalRecordsService.create(createMedicalRecordDto);
   }
 
   @Get()
@@ -25,4 +25,12 @@ export class MedicalRecordsController {
   async findAll() {
     return this.medicalRecordsService.findAll();
   }
+
+  @Get('patient/:patientId')
+  @Roles('ADMIN', 'DENTIST') 
+  @ApiOperation({ summary: 'Retorna a linha do tempo histórica de procedimentos do paciente' })
+  async findByPatient(@Param('patientId') patientId: string) {
+    return this.medicalRecordsService.findByPatient(patientId);
+  }
+
 }

@@ -7,10 +7,10 @@ interface AppointmentQueue {
   id: string;
   startAt: string;
   type: string;
-  status: 'scheduled' | 'waiting' | 'in_attendance' | 'completed' | string;
+  status: 'scheduled' | 'waiting' | 'in_attendance' | 'waiting_checkout' | 'completed' | string;
   notes?: string;
   patient: {
-    name: true;
+    name: string;
     whatsapp: string;
   };
 }
@@ -19,7 +19,6 @@ export default function ReceptionQueue() {
   const [queue, setQueue] = useState<AppointmentQueue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Captura o cabeçalho obrigatório Multi-Tenant do seu cofre local
   const tenantIdHeader = localStorage.getItem('@OdontoOffice:tenantId') || '1';
 
   const fetchQueueData = async () => {
@@ -48,23 +47,25 @@ export default function ReceptionQueue() {
     fetchQueueData();
   }, []);
 
-  //Altera o estado do paciente em tempo real no Postgres!
+
   const handleStatusChange = async (id: string, nextStatus: string, message: string) => {
     try {
       await api.patch(`/appointments/${id}/status`, { status: nextStatus }, {
         headers: { 'X-Tenant-ID': tenantIdHeader }
       });
       toast.success(message);
-      await fetchQueueData(); // Recarrega o painel reativamente na hora!
+      await fetchQueueData(); 
     } catch (err) {
       console.error('Erro ao atualizar status clínico:', err);
       toast.error('Não foi possível alterar o status do paciente.');
     }
   };
 
-  // Separadores lógicos de contagem para os Bento Cards superiores
+ 
   const countWaiting = queue.filter(q => q.status === 'waiting').length;
   const countInAttendance = queue.filter(q => q.status === 'in_attendance').length;
+
+  const countCheckout = queue.filter(q => q.status === 'waiting_checkout').length;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -84,8 +85,8 @@ export default function ReceptionQueue() {
         </button>
       </div>
 
-      {/* MINI INDICADORES METROLÓGICOS DA RECEPÇÃO */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* QUADRO DE INDICADORES METROLÓGICOS EXPANDIDO  */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center gap-4">
           <div className="p-3 bg-blue-50 text-blue-600 rounded-xl"><Clock size={20} /></div>
           <div>
@@ -94,17 +95,27 @@ export default function ReceptionQueue() {
           </div>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl animate-pulse"><UserCheck size={20} /></div>
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl"><UserCheck size={20} /></div>
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Aguardando na Sala</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Na Sala de Espera</p>
             <h3 className="text-2xl font-black text-deep-obsidian">{countWaiting}</h3>
           </div>
         </div>
         <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center gap-4">
           <div className="p-3 bg-green-50 text-green-600 rounded-xl"><Play size={20} /></div>
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Em Atendimento</p>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">No Consultório</p>
             <h3 className="text-2xl font-black text-deep-obsidian">{countInAttendance}</h3>
+          </div>
+        </div>
+        {/* Avisa visualmente se houver paciente esperando o acerto no balcão! */}
+        <div className={`border p-5 rounded-2xl shadow-sm flex items-center gap-4 transition-all ${
+          countCheckout > 0 ? 'bg-purple-50/60 border-purple-200 animate-pulse' : 'bg-white border-gray-100'
+        }`}>
+          <div className={`p-3 rounded-xl ${countCheckout > 0 ? 'bg-purple-600 text-white' : 'bg-purple-50 const text-purple-600'}`}><CheckCircle2 size={20} /></div>
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Aguardando Saída</p>
+            <h3 className={`text-2xl font-black ${countCheckout > 0 ? 'text-purple-700' : 'text-deep-obsidian'}`}>{countCheckout}</h3>
           </div>
         </div>
       </div>
@@ -145,15 +156,18 @@ export default function ReceptionQueue() {
                       <td className="py-4 px-6 font-bold">{item.patient?.name || 'Paciente Não Identificado'}</td>
                       <td className="py-4 px-6 text-xs text-gray-500">{item.type}</td>
                       <td className="py-4 px-6">
+                        {/*  Badges dinâmicas incluindo o status de checkout da clínica */}
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider w-fit ${
                           item.status === 'completed' ? 'bg-green-100 text-green-700' :
                           item.status === 'in_attendance' ? 'bg-blue-100 text-blue-700 animate-pulse' :
                           item.status === 'waiting' ? 'bg-amber-100 text-amber-700 font-black' :
+                          item.status === 'waiting_checkout' ? 'bg-purple-100 text-purple-700 font-black' :
                           'bg-gray-100 text-gray-500'
                         }`}>
                           {item.status === 'scheduled' ? 'Agendado' :
                            item.status === 'waiting' ? 'Na Recepção' :
-                           item.status === 'in_attendance' ? 'No Consultório' : 'Finalizado'}
+                           item.status === 'in_attendance' ? 'No Consultório' : 
+                           item.status === 'waiting_checkout' ? 'Aguardando Saída' : 'Finalizado'}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-right flex items-center justify-end gap-2">
@@ -172,10 +186,20 @@ export default function ReceptionQueue() {
                           </button>
                         )}
 
-                        {/* BOTÃO 3: FINALIZAR ATENDIMENTO (Em Atendimento -> Concluído) */}
+                        {/* BOTÃO 3: FINALIZAR ATENDIMENTO CRU (Se o médico não mover de status direto) */}
                         {item.status === 'in_attendance' && (
                           <button onClick={() => handleStatusChange(item.id, 'completed', 'Consulta finalizada com sucesso!')} className="bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1">
                             <CheckCircle2 size={14} /> Finalizar
+                          </button>
+                        )}
+
+                        {/* Recebimento e Baixa mestre na recepção após liberação da cadeira médica! */}
+                        {item.status === 'waiting_checkout' && (
+                          <button 
+                            onClick={() => handleStatusChange(item.id, 'completed', 'Saída confirmada! Lançamentos pendentes liquidados no caixa.')} 
+                            className="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1"
+                          >
+                            <CheckCircle2 size={14} /> Receber e Finalizar
                           </button>
                         )}
 

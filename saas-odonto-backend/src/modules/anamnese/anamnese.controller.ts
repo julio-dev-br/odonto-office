@@ -14,11 +14,10 @@ export class AnamneseController {
   constructor(private readonly anamneseService: AnamneseService) {}
 
   @Post()
-  @Roles('ADMIN', 'DENTIST')
-  @ApiOperation({ summary: 'Grava ou atualiza a ficha de anamnese com gatilho relacional' })
-  async create(@Body() body: CreateAnamneseDto) { 
-    
-    return this.anamneseService.create(body);
+  @Roles('ADMIN', 'DENTIST') // Trava de segurança mantida
+  @ApiOperation({ summary: 'Cria ou atualiza a ficha de anamnese do paciente' })
+  async create(@Body() body: any) {
+    return this.anamneseService.createOrUpdate(body);
   }
 
   @Get('patient/:patientId')
