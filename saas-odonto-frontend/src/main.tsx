@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast' // 🚀 Novo container de alertas premium!
+
 import './index.css'
 
 // Importações de Segurança, Layouts e Páginas
@@ -13,6 +14,7 @@ import Patients from './pages/dashboard/Patients'
 import Agenda from './pages/dashboard/Agenda'
 import Financial from './pages/dashboard/Financial'
 import Anamnese from './pages/dashboard/Anamnese'
+
 import Settings from './pages/dashboard/Settings';
 import ReceptionQueue from './pages/dashboard/ReceptionQueue'
 import DentistPanel from './pages/dashboard/DentistPanel'

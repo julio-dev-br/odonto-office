@@ -1,9 +1,7 @@
-/* Puxa a fonte premium Inter do Google Fonts */
 @import url('https://googleapis.com');
 
 @import "tailwindcss";
 
-/* CONFIGURAÇÃO DO TAILWIND V4: Tokens de Design Reativos */
 @theme {
   --color-deep-obsidian: #0F172A;
   /* Texto principal no modo claro */
@@ -17,14 +15,11 @@
   --font-sans: "Inter", "sans-serif";
 }
 
-/* MODO ESCURO ISOLADO: Ajuste Fino por Blocos */
 .dark {
   --color-soft-platinum: #0F172A;
-  /* O fundo geral vira o azul-escuro profundo */
-  --color-deep-obsidian: #F8FAFC;
-  /* O texto principal ganha o tom platinum suave */
 
-  /* BLOCO 1: Customização Exclusiva dos Bento Cards de Conteúdo */
+  --color-deep-obsidian: #F8FAFC;
+
   main .bg-white {
     background-color: #1E293B !important;
     /* Slate-800: Tom premium harmonizado */
@@ -33,46 +28,41 @@
     border-radius: 1rem !important;
   }
 
-  /* AJUSTE DAS LABELS E SPANS GERAIS DO MIOLO */
   main label,
   main .text-gray-500,
   main .text-slate-500 {
     color: #94A3B8 !important;
-    /* Cinza ardósia suave para textos e labels */
   }
 
-  /* CORRIGIDO: Harmonização Suprema dos Spans e Subtextos da Agenda */
+
   main .space-y-4 span,
   main .text-gray-400,
   main p.text-xs.text-gray-400 span,
   main p.text-xs.text-gray-400 italic {
     color: #94A3B8 !important;
-    /* Notas clínicas e observações ganham contraste nítido! */
   }
 
   main p.text-xs.text-gray-400 svg {
     color: #64748B !important;
-    /* Ícones de alerta das notas ficam discretos */
   }
 
-  /* Garante contraste do bloco de horário fixo na agenda */
+
   main .font-mono span.text-deep-obsidian {
     color: #F8FAFC !important;
-    /* Horários de início acendem em branco platinum */
+
   }
 
   main .font-mono span.text-gray-400 {
     color: #64748B !important;
-    /* Horários de término ganham o cinza sutil */
   }
 
-  /* Preserva a cor das badges ativas de status de consulta no modo escuro */
+
   main span.bg-mint-clean\/10 {
     background-color: rgba(16, 185, 129, 0.1) !important;
     color: #10B981 !important;
   }
 
-  /* BLOCO 2: Customização Cirúrgica do Header (Topbar) */
+
   header {
     background-color: #1E293B !important;
     border-color: #334155 !important;
@@ -92,7 +82,6 @@
     color: #10B981 !important;
   }
 
-  /* BLOCO 3: Harmonização do Dropdown de Perfil e Avatar */
   header .absolute.right-0 {
     background-color: #1E293B !important;
     border-color: #334155 !important;
@@ -117,7 +106,7 @@
     color: #0F172A !important;
   }
 
-  /* BLOCO 4: Tabelas e Campos de Entrada (Inputs/Selects) */
+
   main input,
   main select,
   main textarea {
@@ -133,7 +122,7 @@
     border-color: #10B981 !important;
   }
 
-  /* Ajuste das Tabelas Clínicas e Financeiras */
+
   main table {
     border-color: #1E293B !important;
   }
@@ -158,7 +147,6 @@
   }
 }
 
-/* Protege a Sidebar e todos os seus sub-elementos */
 .dark aside,
 .dark aside *,
 .dark aside span {
@@ -167,14 +155,13 @@
   border-color: #1E293B !important;
 }
 
-/* Protege e força o termo "Office" a continuar verde Mint Clean no logo da Sidebar! */
 .dark aside h2 span.text-mint-clean,
 aside h2 span.text-mint-clean {
   color: #10B981 !important;
   background-color: transparent !important;
 }
 
-/* Garante que os ícones do Lucide-react também ganhem a cor branca/verde no hover da Sidebar */
+
 .dark aside a:hover,
 .dark aside a:hover * {
   background-color: #1E293B !important;
@@ -199,11 +186,116 @@ aside h2 span.text-mint-clean {
   /* Borda discreta Slate-700 */
 }
 
-/* Aplicação dos estilos globais base */
+
 body {
   background-color: var(--color-soft-platinum);
   color: var(--color-deep-obsidian);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.fc-daygrid-block-event,
+.fc-daygrid-dot-event {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  padding: 5px 8px !important;
+  margin: 3px 4px !important;
+  border-radius: 6px !important;
+  background-color: #0d9488 !important;
+  border: 1px solid #0d9488 !important;
+  color: #ffffff !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 4px rgba(13, 148, 136, 0.12) !important;
+
+  /* 🛡️ VACINA ANTI-CORTE: Força o texto a quebrar de linha de forma fluida! */
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+.fc-daygrid-event-dot {
+  display: none !important;
+}
+
+.fc-v-event {
+  background-color: #0d9488 !important;
+  border: 1px solid #0d9488 !important;
+  border-radius: 0.6rem !important;
+  padding: 6px 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.1) !important;
+}
+
+.fc-event-main,
+.fc-event-title,
+.fc-event-time {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  line-height: 1.3 !important;
+
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+.fc-now-indicator-line {
+  border-color: #ef4444 !important;
+  border-width: 2px !important;
+}
+
+.fc-now-indicator-arrow {
+  border-color: #ef4444 !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+.fc-header-toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 1.75rem !important;
+  width: 100% !important;
+}
+
+.fc-toolbar-chunk {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+}
+
+
+.fc .fc-button {
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.55rem 1.1rem !important;
+  border-radius: 0.75rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) !important;
+}
+
+.fc .fc-button:hover {
+  background-color: #e2e8f0 !important;
+  color: #0d9488 !important;
+}
+
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: #0d9488 !important;
+  color: #ffffff !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2) !important;
+}
+
+.fc .fc-button:focus,
+.fc .fc-button-primary:focus {
+  box-shadow: none !important;
+  outline: none !important;
 }
