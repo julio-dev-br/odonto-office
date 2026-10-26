@@ -86,7 +86,7 @@ export default function ReceptionQueue() {
         </button>
       </div>
 
-      {/* 🧭 SELETOR DE ABAS PREMIUM (Tabs Banho de Loja) */}
+      {/* SELETOR DE ABAS PREMIUM (Tabs Banho de Loja) */}
       <div className="flex border-b border-gray-100 gap-2">
         <button
           type="button"
@@ -106,7 +106,7 @@ export default function ReceptionQueue() {
         </button>
       </div>
 
-      {/* 📊 CONTEÚDO DA ABA 1: FILA OPERACIONAL */}
+      {/* ABA 1: FILA OPERACIONAL */}
       {activeView === 'queue' && (
         <div className="space-y-6 animate-fade-in">
           {/* QUADRO DE INDICADORES METROLÓGICOS EXPANDIDO */}
@@ -241,11 +241,11 @@ export default function ReceptionQueue() {
               </div>
             )}
           </div>
-          {/* 🚀 TRAVA CIRÚRGICA: Fecha o bloco da div e a chave lógica condicional da Aba 1 (queue) de forma estrita! */}
+          {/* Fecha o bloco da div e a chave lógica condicional da Aba 1 (queue) de forma estrita! */}
         </div>
       )}
 
-      {/* 🚀 ABA 2: RENDERIZA O FULLCALENDAR MULTI-TENANT ISOLADO SE A ABA ATIVA FOR 'calendar' */}
+      {/* ABA 2: RENDERIZA O FULLCALENDAR MULTI-TENANT ISOLADO SE A ABA ATIVA FOR 'calendar' */}
       {activeView === 'calendar' && (
         <ClinicalCalendar />
       )}

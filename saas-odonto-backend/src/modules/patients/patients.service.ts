@@ -7,7 +7,6 @@ export class PatientsService {
 
   async create(data: { name: string; cpf?: string; whatsapp?: string }) {
     return this.prisma.tenantClient.patient.create({
-      // Usamos 'as any' para o TypeScript permitir o fluxo dinâmico da extensão
       data: {
         name: data.name,
         cpf: data.cpf,
@@ -16,7 +15,6 @@ export class PatientsService {
     });
   }
 
-  // Lista APENAS os pacientes pertencentes à clínica atual
   async findAll() {
     const client = this.prisma.tenantClient as any;
     const model = client.patient || client.Patient;

@@ -154,7 +154,7 @@ model MedicalRecord {
   @@map("medical_records")
 }
 
-//NOVO MODELO: CATÁLOGO DE PROCEDIMENTOS E PRECIFICAÇÃO
+// Catálogo de procedimentos e precificação
 model DentalProcedure {
   id           BigInt   @id @default(autoincrement())
   tenantId     BigInt   @map("tenant_id")
@@ -197,7 +197,7 @@ model FinancialTransaction {
 model Anamnese {
   id                   BigInt   @id @default(autoincrement())
   tenantId             BigInt   @map("tenant_id")
-  patientId            BigInt   @unique @map("patient_id") // Relacionamento 1-para-1 único por paciente!
+  patientId            BigInt   @unique @map("patient_id") 
   hasAllergy           Boolean  @default(false) @map("has_allergy")
   allergyDetails       String   @default("Nenhuma") @map("allergy_details") @db.Text
   hasHeartDisease      Boolean  @default(false) @map("has_heart_disease")
@@ -207,7 +207,6 @@ model Anamnese {
   createdAt            DateTime @default(now()) @map("created_at")
   updatedAt            DateTime @updatedAt @map("updated_at")
 
-  // 🚀 SOLDADO: Amarração de Integridade estrita Multi-Tenant exigida pelo seu proxy core!
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 

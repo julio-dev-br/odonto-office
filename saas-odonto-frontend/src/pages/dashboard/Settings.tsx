@@ -7,7 +7,7 @@ import { ProcedureForm } from '../../components/ProcedureForm'; // 🚀 IMPORTA 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'procedures' | 'system'>('profile');
 
-  // 🚀 ADICIONADO: Captura a identificação da clínica ativa salva no seu cofre local para o JSX ler!
+  // Captura a identificação da clínica ativa salva no seu cofre local para o JSX ler!
   const tenantIdHeader = localStorage.getItem('@OdontoOffice:tenantId') || '1';
 
   // Estados locais do perfil simulando dados da sessão logada
@@ -38,7 +38,7 @@ export default function Settings() {
         </p>
       </div>
 
-      {/* 🧭 NAVEGAÇÃO POR ABAS PREMIUM (Tabs) */}
+      {/* NAVEGAÇÃO POR ABAS PREMIUM (Tabs) */}
       <div className="flex border-b border-gray-100 gap-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('profile')}
@@ -57,7 +57,7 @@ export default function Settings() {
           <Users size={16} /> Gestão da Equipe
         </button>
         
-        {/* 🚀 ABA NOVA: PROCEDIMENTOS CLÍNICOS */}
+        {/* ABA NOVA: PROCEDIMENTOS CLÍNICOS */}
         <button
           onClick={() => setActiveTab('procedures')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${
@@ -105,7 +105,7 @@ export default function Settings() {
         {/* ABA 2: GESTÃO DA EQUIPE */}
         {activeTab === 'team' && <UserManagementForm />}
 
-        {/* 🚀 ABA 3: PROCEDIMENTOS CLÍNICOS (Chama o componente novo!) */}
+        {/* ABA 3: PROCEDIMENTOS CLÍNICOS (Chama o componente novo!) */}
         {activeTab === 'procedures' && <ProcedureForm />}
 
         {/* ABA 4: DADOS DO CONSULTÓRIO */}

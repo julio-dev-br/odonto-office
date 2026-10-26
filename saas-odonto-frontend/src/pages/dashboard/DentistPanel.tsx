@@ -18,7 +18,7 @@ export default function DentistPanel() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // 🚀 ADICIONADO: Estado reativo para controlar se é apenas avaliação/orçamento!
+  // Estado reativo para controlar se é apenas avaliação/orçamento!
   const [isBudget, setIsBudget] = useState(false);
 
   const { professionalId: loggedProfessionalId, tenantId: tenantIdHeader } = getActiveSession();
@@ -82,7 +82,7 @@ export default function DentistPanel() {
     try {
       setIsSubmitting(true);
       
-      // 🚀 ATUALIZADO: Passa a flag isBudget para o NestJS decidir se gera ou não o caixa!
+      //  Passa a flag isBudget para o NestJS decidir se gera ou não o caixa!
       await api.post('/medical-records', {
         patientId: activePatient.patientId,
         procedureId: selectedProcedureId,

@@ -14,7 +14,7 @@ export class AnamneseController {
   constructor(private readonly anamneseService: AnamneseService) {}
 
   @Post()
-  @Roles('ADMIN', 'DENTIST') // Trava de segurança mantida
+  @Roles('ADMIN', 'DENTIST') 
   @ApiOperation({ summary: 'Cria ou atualiza a ficha de anamnese do paciente' })
   async create(@Body() body: any) {
     return this.anamneseService.createOrUpdate(body);

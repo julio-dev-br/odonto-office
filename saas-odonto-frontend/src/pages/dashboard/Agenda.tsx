@@ -9,7 +9,6 @@ export default function Agenda() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 📥 1. LEITURA REAL: Busca os horários e trata o fuso de exibição na tela
   const fetchAppointments = async () => {
     try {
       setIsLoading(true);
@@ -18,7 +17,6 @@ export default function Agenda() {
       const response = await api.get('/appointments');
       
       const formatted = response.data.map((appt: any) => {
-        // O construtor do Date converte o UTC do Postgres automaticamente para o fuso local do PC!
         const startDate = new Date(appt.startAt);
         const endDate = new Date(appt.endAt);
         
@@ -26,7 +24,6 @@ export default function Agenda() {
           id: appt.id.toString(),
           patientName: appt.patient?.name || 'Paciente Geral',
           professionalName: appt.professional?.name || 'Dentista Clínico',
-          // Formata a hora respeitando o fuso local (UTC-3 do Brasil)
           startAt: startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
           endAt: endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' }),
           type: appt.type || 'Consulta Geral',
@@ -48,7 +45,6 @@ export default function Agenda() {
     fetchAppointments();
   }, []);
 
-  // 📤 GRAVAÇÃO REAL ATUALIZADA COM PROCEDIMENTOS DO BANCO
   const handleAddAppointment = async (newAppt: any) => {
     try {
       setError('');
@@ -62,17 +58,15 @@ export default function Agenda() {
       const localStart = new Date(`${todayStr}T${newAppt.startAt}:00`);
       const localEnd = new Date(`${todayStr}T${newAppt.endAt}:00`);
 
-      // Envia o payload idêntico ao exigido pelas regras relacionais de chaves estrangeiras
       await api.post('/appointments', {
         patientId: newAppt.patientId.toString(),
         professionalId: newAppt.professionalId.toString(),
         startAt: localStart.toISOString(),
         endAt: localEnd.toISOString(),
-        type: newAppt.type, // Passa o nome do procedimento mapeado dinamicamente!
+        type: newAppt.type, 
         notes: newAppt.notes
       });
 
-      // Atualiza a Timeline puxando a resposta higienizada do banco
       await fetchAppointments();
     } catch (err: any) {
       console.error(err);

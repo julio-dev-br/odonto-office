@@ -39,7 +39,6 @@ export class AppointmentsService {
     });
   }
 
-  // Busca todas as consultas de hoje para o gerenciamento da recepção
   async findQueueToday() {
     const client = this.prisma.tenantClient as any;
     const model = client.appointment || client.Appointment;
@@ -69,13 +68,11 @@ export class AppointmentsService {
     });
   }
 
-  //Dá check-in, chama pro consultório ou finaliza a consulta
   async updateStatus(id: string, status: string) {
     const client = this.prisma.tenantClient as any;
     const appointmentModel = client.appointment || client.Appointment;
     const financialModel = client.financialTransaction || client.FinancialTransaction;
 
-    // 1. Atualiza o status do agendamento na Fila da Recepção
     const updatedAppointment = await appointmentModel.update({
       where: { id: BigInt(id) },
       data: { status },
@@ -85,10 +82,10 @@ export class AppointmentsService {
       await financialModel.updateMany({
         where: {
           patientId: updatedAppointment.patientId,
-          status: 'pending' // Encontra a conta a receber que o médico gerou
+          status: 'pending'
         },
         data: {
-          status: 'paid', // Liquida o caixa!
+          status: 'paid', 
           updatedAt: new Date()
         }
       });

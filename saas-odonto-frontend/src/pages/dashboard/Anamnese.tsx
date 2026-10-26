@@ -11,7 +11,7 @@ export default function Anamnese() {
   const [activeAnamnese, setActiveAnamnese] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // FUNÇÃO DE LEITURA: Busca a lista de pacientes e o histórico de anamnese
+
   const loadPatients = async () => {
     try {
       setIsLoading(true);
@@ -25,18 +25,15 @@ export default function Anamnese() {
     }
   };
 
-  // 🔍 BUSCA SE O PACIENTE SELECIONADO JÁ POSSUI FICHA SALVA NO BANCO
   const fetchPatientAnamnese = async (patientId: string) => {
     if (!patientId) {
       setActiveAnamnese(null);
       return;
     }
     try {
-      // Bate na nossa rota relacional controlada por clínica do backend NestJS
      const response = await api.get(`/anamnese/patient/${patientId}`);
       setActiveAnamnese(response.data || null);
     } catch (err) {
-      // Se retornar 404 significa que o paciente está limpo e sem ficha cadastrada ainda
       setActiveAnamnese(null);
     }
   };
@@ -49,7 +46,6 @@ export default function Anamnese() {
     fetchPatientAnamnese(selectedPatientId);
   }, [selectedPatientId]);
 
-  // 📤 FUNÇÃO DE GRAVAÇÃO REAL (POST): Grava a anamnese física no Postgres via Axios
   const handleSaveAnamnese = async (formData: any) => {
     if (!selectedPatientId) {
       toast.error('Por favor, selecione um paciente primeiro.');
@@ -63,7 +59,6 @@ export default function Anamnese() {
       });
 
       toast.success('Ficha de Anamnese gravada no Postgres!');
-      // Recarrega o contexto clínico do paciente na mesma hora
       await fetchPatientAnamnese(selectedPatientId);
     } catch (err: any) {
       console.error(err);
@@ -108,7 +103,7 @@ export default function Anamnese() {
               </select>
             </div>
 
-            {/* 🛡️ PAINEL OPERACIONAL DE RISCO: Alertas piscam aqui se o paciente tiver condições críticas! */}
+            {/* PAINEL OPERACIONAL DE RISCO: Alertas piscam aqui se o paciente tiver condições críticas! */}
             {activeAnamnese && (
               <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm space-y-4">
                 <h4 className="text-xs font-bold text-deep-obsidian uppercase tracking-wider border-b border-gray-50 pb-2">

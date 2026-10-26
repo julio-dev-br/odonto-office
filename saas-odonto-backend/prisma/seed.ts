@@ -15,7 +15,6 @@ async function main() {
 
   const tenantId = BigInt(1);
 
-  // 🏢 1. Semeia Tenant Corporativo Mestre
   console.log('🏢 Semeando Tenant Corporativo mestre...');
   await prisma.tenant.upsert({
     where: { id: tenantId } as any,
@@ -29,10 +28,8 @@ async function main() {
     } as any
   });
 
-  // 🔒 Criptografa a senha padrão de teste do Dr. Anderson
   const hashedDefaultPassword = await bcrypt.hash('odonto123', 10);
 
-  // 👤 2. SEMEIA O USUÁRIO DO DR. ANDERSON (Acesso)
   console.log('👤 Semeando Usuário Administrativo do Dr. Anderson...');
   const userAnderson = await prisma.user.upsert({
     where: { id: BigInt(3) } as any,
@@ -43,12 +40,11 @@ async function main() {
       name: 'Dr. Anderson Silva',
       email: 'anderson@sorrisoperfeito.com',
       password: hashedDefaultPassword,
-      role: 'ADMIN', // Papel administrativo total para o painel mestre
+      role: 'ADMIN', 
       active: true
     } as any
   });
 
-  // 🩺 3. SEMEIA O REGISTRO PROFISSIONAL DO DR. ANDERSON (Atuação Clínica)
   console.log('🩺 Semeando Vínculo Clínico do Dr. Anderson...');
   await prisma.professional.upsert({
     where: { id: BigInt(1) } as any,
@@ -56,11 +52,11 @@ async function main() {
     create: {
       id: BigInt(1),
       tenantId,
-      userId: BigInt(3), // Amarra com o usuário de ID 3 que criamos acima!
+      userId: BigInt(3), 
       name: 'Dr. Anderson Silva',
       cro: 'CRO-SP 12345',
       specialty: 'Ortodontia e Implantodontia',
-      active: true // Sintonizado com o campo 'active' do seu schema!
+      active: true 
     } as any
   });
 

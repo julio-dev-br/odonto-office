@@ -59,21 +59,20 @@ createRoot(document.getElementById('root')!).render(
       toastOptions={{
         className: 'font-sans text-xs font-bold rounded-2xl border transition-all duration-300 shadow-2xl backdrop-blur-md px-4 py-3 flex items-center gap-2',
 
-        // Configurações reativas específicas para cada gatilho clínico
         success: {
           iconTheme: {
-            primary: '#10B981', // Verde Mint Clean brilhante no ícone nativo
+            primary: '#10B981',
             secondary: '#FFFFFF',
           },
           style: {
             background: 'rgba(255, 255, 255, 0.9)',
-            color: '#0F172A', // Texto em Deep Obsidian no modo claro
+            color: '#0F172A', 
             borderColor: '#E2E8F0',
           },
         },
         error: {
           iconTheme: {
-            primary: '#EF4444', // Vermelho cirúrgico nos alertas
+            primary: '#EF4444', 
             secondary: '#FFFFFF',
           },
           style: {

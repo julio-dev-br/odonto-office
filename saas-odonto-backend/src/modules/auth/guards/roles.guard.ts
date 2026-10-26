@@ -7,13 +7,13 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // 1. Puxa as roles permitidas que carimbamos na rota via decorator @Roles
+
     const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
 
-    // Se a rota não tiver o decorator @Roles, ela é liberada por padrão
+
     if (!requiredRoles) {
       return true;
     }
@@ -30,7 +30,7 @@ export class RolesGuard implements CanActivate {
       const secret = process.env.JWT_SECRET || 'SECRET_KEY_SUPER_SECRETA_SAAS_2026';
       
       const decoded = jwt.verify(token, secret) as any;
-      const userRole = decoded.role; // Puxa 'ADMIN', 'DENTIST', 'RECEPTIONIST', etc.
+      const userRole = decoded.role; 
 
       const hasPermission = requiredRoles.includes(userRole);
 
