@@ -27,7 +27,7 @@ export class FinancialTransactionsController {
   }
 
   @Get()
-@Roles('ADMIN', 'RECEPTIONIST', 'DENTIST')
+  @Roles('ADMIN', 'RECEPTIONIST', 'DENTIST')
   @ApiOperation({ summary: 'Retrieve all financial transactions filtered by clinic' })
   async findAll() {
     return this.financialTransactionsService.findAll();
@@ -48,5 +48,18 @@ export class FinancialTransactionsController {
     return this.financialTransactionsService.getChartData();
   }
 
+  @Get('search/patients')
+  @Roles('ADMIN', 'RECEPTIONIST', 'DENTIST')
+  @ApiOperation({ summary: 'Retrieve all patients filtered by clinic for dropdown search' })
+  async searchPatients() {
+    return this.financialTransactionsService.searchPatients();
+  }
+
+  @Get('search/procedures')
+  @Roles('ADMIN', 'RECEPTIONIST', 'DENTIST')
+  @ApiOperation({ summary: 'Retrieve all dental procedures filtered by clinic for dropdown search' })
+  async searchProcedures() {
+    return this.financialTransactionsService.searchProcedures();
+  }
 
 }
