@@ -24,4 +24,47 @@ export class PatientsService {
     });
   }
 
+  async findPaginated(query: { page?: number; limit?: number; search?: string; sort?: 'asc' | 'desc' }) {
+    const client = this.prisma.tenantClient as any;
+    const model = client.patient || client.Patient;
+
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 8;
+    const skip = (page - 1) * limit;
+    const sortOrder = query.sort === 'desc' ? 'desc' : 'asc';
+
+    const whereCondition = query.search
+      ? {
+          OR: [
+            { name: { contains: query.search, mode: 'insensitive' } },
+            { cpf: { contains: query.search } },
+          ],
+        }
+      : {};
+
+    const [items, totalItems] = await Promise.all([
+      model.findMany({
+        where: whereCondition,
+        orderBy: { name: sortOrder },
+        skip,
+        take: limit,
+      }),
+      model.count({
+        where: whereCondition,
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      items,
+      meta: {
+        totalItems,
+        itemCount: items.length,
+        itemsPerPage: limit,
+        totalPages,
+        currentPage: page,
+      },
+    };
+  }
 }

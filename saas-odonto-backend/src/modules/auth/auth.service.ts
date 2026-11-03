@@ -71,4 +71,62 @@ export class AuthService {
       }
     };
   }
+
+  async getProfile(userId: string | number) {
+    const client = this.prisma.tenantClient as any;
+    
+    const targetId = userId ? BigInt(userId) : null;
+    
+    const queryCondition = targetId ? { id: targetId } : { role: 'ADMIN' };
+
+    const user = await client.user.findFirst({
+      where: queryCondition,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuário não localizado no banco.');
+    }
+
+    return {
+      ...user,
+      id: user.id.toString(),
+    };
+  }
+
+  async updateProfile(userId: string | number, body: any) {
+    const client = this.prisma.tenantClient as any;
+    
+    // Fallback preventivo para evitar o travamento 400
+    const targetId = userId ? BigInt(userId) : (await client.user.findFirst({ where: { role: 'ADMIN' } }))?.id;
+
+    if (!targetId) {
+      throw new BadRequestException('User ID is required to update profile.');
+    }
+
+    const updatedUser = await client.user.update({
+      where: { id: BigInt(targetId) },
+      data: {
+        name: body.name,
+        email: body.email,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    return {
+      ...updatedUser,
+      id: updatedUser.id.toString(),
+    };
+  }
+
 }

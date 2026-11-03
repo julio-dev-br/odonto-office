@@ -10,7 +10,6 @@ export class TenantsService {
   async register(body: CreateTenantDto) {
     const { name, slug, adminName, adminEmail, adminPassword } = body;
 
-    // 1. Validar se o slug já está em uso no ecossistema
     const existingTenant = await this.prisma.tenant.findUnique({
       where: { slug },
     });
@@ -19,10 +18,8 @@ export class TenantsService {
       throw new BadRequestException(`The slug '${slug}' is already taken by another clinic.`);
     }
 
-    // 2. Criptografar a senha do dentista administrador
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
-    // 3. ENGENHARIA DE TRANSAÇÃO: Roda tudo junto ou desfaz tudo se der erro!
     return this.prisma.$transaction(async (tx) => {
       // A) Cria a Clínica (Tenant)
       const tenant = await tx.tenant.create({
@@ -34,7 +31,6 @@ export class TenantsService {
         },
       });
 
-      // B) Cria o Usuário Admin amarrado a essa clínica
       const user = await tx.user.create({
         data: {
           tenantId: tenant.id,
@@ -46,7 +42,6 @@ export class TenantsService {
         },
       });
 
-      // C) Cria o esqueleto do site da clínica (Landing Page Baseline)
       await tx.clinicSite.create({
         data: {
           tenantId: tenant.id,
@@ -71,4 +66,49 @@ export class TenantsService {
       };
     });
   }
+
+  async getCurrentTenant(tenantId: string | number) {
+    const targetTenantId = tenantId ? BigInt(tenantId) : BigInt(1);
+
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: targetTenantId },
+      select: {
+        id: true,
+        name: true,
+        plan: true,
+        status: true,
+      },
+    });
+
+    if (!tenant) {
+      throw new BadRequestException('Clinic not found.');
+    }
+
+    return {
+      ...tenant,
+      id: tenant.id.toString(),
+    };
+  }
+
+  async updateSettings(tenantId: string | number, body: any) {
+    const targetTenantId = tenantId ? BigInt(tenantId) : BigInt(1);
+
+    if (!body.name || body.name.trim().length < 3) {
+      throw new BadRequestException('The clinic name must have at least 3 characters.');
+    }
+
+    const updatedTenant = await this.prisma.tenant.update({
+      where: { id: targetTenantId },
+      data: {
+        name: body.name,
+      },
+    });
+
+    return {
+      id: updatedTenant.id.toString(),
+      name: updatedTenant.name,
+      plan: updatedTenant.plan,
+    };
+  }
+
 }

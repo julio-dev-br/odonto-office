@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { Search, Printer } from 'lucide-react';
+import { Printer, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PatientRecordPDF } from './PatientRecordPDF';
 
 interface Patient {
@@ -13,60 +13,48 @@ interface Patient {
 
 interface PatientListProps {
   patients: Patient[];
+  currentPage: number;
+  totalPages: number;
+  sortOrder: 'asc' | 'desc';
+  onPageChange: (page: number) => void;
+  onToggleSort: () => void;
 }
 
-export function PatientList({ patients }: PatientListProps) {
-  const [search, setSearch] = useState('');
+export function PatientList({ 
+  patients, 
+  currentPage, 
+  totalPages, 
+  sortOrder, 
+  onPageChange, 
+  onToggleSort  
+}: PatientListProps) {
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
   
-  // Referência física oculta para o injetor de PDF ler as tags HTML
+
   const componentRef = useRef<HTMLDivElement>(null);
 
-  // Gatilho inteligente do react-to-print
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
     documentTitle: `Ficha_Clinica_${selectedPatient?.name || 'Paciente'}`,
   });
 
   const handleTriggerPrint = (patient: Patient) => {
-    // Simula a coleta de consultas vinculadas a esse paciente no banco (pode acoplar Axios depois)
-    const simulatedAppointments = [
-      { id: '1', type: 'Clareamento Laser', startAt: '14:30', professionalName: 'Dr. Anderson Silva', notes: 'Procedimento finalizado com sucesso absoluto. Sem queixas.' }
-    ];
 
     setSelectedPatient(patient);
     
-    // Aguarda o estado carregar o paciente e dispara a impressão nativa em lote!
     setTimeout(() => {
       handlePrint();
     }, 100);
   };
 
-  const filteredPatients = patients.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase()) || p.cpf.includes(search)
-  );
-
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
       
-      {/* Barra de Busca */}
-      <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4 mb-2">
+      {/* Cabeçalho da Tabela Clean */}
+      <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
         <h3 className="text-sm font-bold text-deep-obsidian uppercase tracking-wider">
-          Pacientes Cadastrados ({filteredPatients.length})
+          Prontuários Clínicos Ativos ({patients.length})
         </h3>
-        
-        <div className="relative w-full sm:w-64 ml-auto">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <Search size={16} />
-          </div>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nome ou CPF..."
-            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-xs font-medium text-deep-obsidian focus:outline-none focus:border-mint-clean focus:bg-white transition-all shadow-sm"
-          />
-        </div>
       </div>
 
       {/* Tabela Física */}
@@ -75,27 +63,37 @@ export function PatientList({ patients }: PatientListProps) {
           <thead>
             <tr className="border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase bg-gray-50/20">
               <th className="py-4 px-6">ID</th>
-              <th className="py-4 px-6">Nome</th>
+              
+              {/* 🚀 BOTÃO DE ORDENAÇÃO DINÂMICA: Altera o fluxo A-Z / Z-A direto no Postgres */}
+              <th className="py-4 px-6">
+                <button 
+                  onClick={onToggleSort}
+                  className="flex items-center gap-1 hover:text-dentistry-teal transition-colors font-semibold uppercase tracking-wider cursor-pointer text-left"
+                >
+                  Nome {sortOrder === 'asc' ? '🔼' : '🔽'}
+                </button>
+              </th>
+              
               <th className="py-4 px-6">CPF</th>
               <th className="py-4 px-6">WhatsApp</th>
               <th className="py-4 px-6">Data Cadastro</th>
-              <th className="py-4 px-6 text-right">Ações</th>
+              <th className="py-4 px-6 text-right">Ações de Prontuário</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 text-sm font-medium text-deep-obsidian">
-            {filteredPatients.map((patient) => (
+            {patients.map((patient) => (
               <tr key={patient.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="py-4 px-6 text-gray-400 text-xs">#{patient.id}</td>
-                <td className="py-4 px-6 font-bold">{patient.name}</td>
+                <td className="py-4 px-6 text-gray-400 text-xs font-mono">#{patient.id}</td>
+                <td className="py-4 px-6 font-bold text-gray-900">{patient.name}</td>
                 <td className="py-4 px-6 text-gray-500 font-mono text-xs">{patient.cpf}</td>
                 <td className="py-4 px-6 text-gray-500 font-mono text-xs">{patient.whatsapp}</td>
-                <td className="py-4 px-6 text-gray-400 text-xs">{patient.createdAt}</td>
-                <td className="py-4 px-6 text-right flex justify-end gap-4">
+                <td className="py-4 px-6 text-gray-400 text-xs font-mono">{patient.createdAt}</td>
+                <td className="py-4 px-6 text-right">
                   <button 
                     onClick={() => handleTriggerPrint(patient)}
-                    className="text-xs font-bold text-mint-clean hover:underline cursor-pointer flex items-center gap-1.5"
+                    className="ml-auto text-xs font-bold bg-gray-50 border border-gray-200 text-gray-700 hover:text-dentistry-teal hover:border-dentistry-teal px-3 py-1.5 rounded-xl shadow-sm transition-all cursor-pointer flex items-center gap-1.5 justify-end"
                   >
-                    <Printer size={14} /> Imprimir Ficha (PDF)
+                    <Printer size={13} /> Ficha Clínica (PDF)
                   </button>
                 </td>
               </tr>
@@ -104,7 +102,50 @@ export function PatientList({ patients }: PatientListProps) {
         </table>
       </div>
 
-      {/* CONTÊNER OCULTO: Esse div fica invisível na tela, mas acende na folha A4 do PDF! */}
+      {/* 🚀 NOVO COMPONENTE: Painel e Pílulas de Paginação sob Demanda */}
+      <div className="p-4 border-t border-gray-50 bg-gray-50/30 flex items-center justify-between gap-4">
+        <div className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+          Página {currentPage} de {totalPages}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {/* Botão: Voltar Página */}
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="p-2 border border-gray-200 rounded-xl bg-white text-gray-600 hover:bg-gray-50 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+          >
+            <ChevronLeft size={16} />
+          </button>
+
+          {/* Renderização das pílulas numéricas com Verde Padrão */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => onPageChange(page)}
+              className={`px-3 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
+                currentPage === page
+                  ? 'bg-dentistry-teal text-white border border-dentistry-teal' // 🚀 VERDE PADRÃO AQUI!
+                  : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          {/* Botão: Avançar Página */}
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="p-2 border border-gray-200 rounded-xl bg-white text-gray-600 hover:bg-gray-50 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
+
+      </div>
+
+      {/* CONTÊNER OCULTO: Injetor físico invisível na tela, que acende no A4 do PDF */}
       <div className="hidden">
         <div ref={componentRef}>
           <PatientRecordPDF 
