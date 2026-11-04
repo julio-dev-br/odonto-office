@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
+import { AppModule, ObserveInstrument } from './app.module';
 
 async function bootstrap() {
   // 🛡️ VACINA SUPREMA: Ensina o JSON global do JavaScript a converter BigInt para texto!
@@ -8,7 +9,10 @@ async function bootstrap() {
     return this.toString();
   };
 
-  const app = await NestFactory.create(AppModule);
+  // 🚀 Passa o ObserveInstrument para o NestFactory
+  const app = await NestFactory.create(AppModule, {
+    instrument: ObserveInstrument,
+  });
 
   // Ativa o CORS com passe livre total para o seu projeto React!
   app.enableCors({
@@ -16,6 +20,13 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true, // Remove campos que não estão no DTO
+    forbidNonWhitelisted: true, // Dá erro se enviarem campos a mais
+    transform: true, // Transforma os tipos automaticamente (ex: string para number)
+  }));
+
 
   // Configuração do Swagger Premium
   const config = new DocumentBuilder()

@@ -9,10 +9,15 @@ import {
   Shield,
   SettingsIcon,
   User,
-  ClipboardList
+  ClipboardList,
+  Globe
 } from 'lucide-react';
 
 export function Sidebar() {
+
+  const user = JSON.parse(localStorage.getItem('@OdontoOffice:user') || '{}');
+  const hasSiteFeature = user.tenantPlan === 'Pro' || user.tenantPlan === 'PLATINUM' || user.tenantPlan === 'pro' || user.tenantPlan === 'platinum';
+
   const location = useLocation();
 
   const menuItems = [
@@ -24,7 +29,9 @@ export function Sidebar() {
     { path: '/dashboard/queue', name: 'Fila da Recepção', icon: <Users size={20} /> },
     { path: '/dashboard/dentist-panel', name: 'Painel Clínico', icon: <ClipboardList size={20} /> },
     { path: '/dashboard/settings', name: 'Configurações', icon: <SettingsIcon size={20} /> },
+    ...(hasSiteFeature ? [{ path: '/dashboard/my-site', name: 'Meu Site', icon: <Globe size={20} /> }] : []),
   ];
+
 
   const handleLogout = () => {
     localStorage.clear();

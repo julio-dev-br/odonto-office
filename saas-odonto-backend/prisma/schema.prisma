@@ -77,7 +77,7 @@ model Professional {
 // Clinic Custom Landing Page
 model ClinicSite {
   id          BigInt  @id @default(autoincrement())
-  tenantId    BigInt  @map("tenant_id")
+  tenantId    BigInt  @unique @map("tenant_id") // 🚀 Adicionado @unique (1 site por clínica)
   title       String  @db.VarChar(255)
   description String? @db.Text
   logo        String? @db.VarChar(500)
@@ -89,6 +89,10 @@ model ClinicSite {
   accentColor     String @default("#10B981") @map("accent_color") @db.VarChar(7) // Mint Clean
   backgroundColor String @default("#F8FAFC") @map("background_color") @db.VarChar(7) // Soft Platinum
   theme           String @default("light") @db.VarChar(50) // light or dark
+
+  // 🚀 NOVOS CAMPOS PARA CONTROLE DE PUBLICAÇÃO
+  isPublished Boolean   @default(false) @map("is_published")
+  publishedAt DateTime? @map("published_at")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
@@ -248,4 +252,17 @@ model Anamnese {
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   @@map("anamnese")
+}
+
+// Mensagens de Contato (Formulário da Landing Page)
+model ContactMessage {
+  id        BigInt   @id @default(autoincrement())
+  name      String   @db.VarChar(200)
+  email     String   @db.VarChar(255)
+  message   String   @db.Text
+  ipAddress String?  @map("ip_address") @db.VarChar(45) // Para auditoria de segurança (IPv4 ou IPv6)
+  status    String   @default("pending") @db.VarChar(50) // pending, read, replied
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_messages")
 }

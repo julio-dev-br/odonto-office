@@ -2,6 +2,8 @@ import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 // Importações do ecossistema Multi-Tenant
 import { TenantMiddleware } from './common/tenant/tenant.middleware';
@@ -17,11 +19,17 @@ import { DentalProceduresModule } from './modules/dental-procedures/dental-proce
 import { ProfessionalsModule } from './modules/professionals/professionals.module';
 import { AnamneseModule } from './modules/anamnese/anamnese.module';
 import { UsersModule } from './modules/users/users.module';
+import { ContactModule } from './modules/contact/contact.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 100,
+    }]),
     // Mantém o monitoramento do NestJS Observe intacto
     ObserveModule.forRoot({
       appKey: 'YOUR_APP_KEY',
@@ -38,12 +46,18 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     DentalProceduresModule,
     ProfessionalsModule,
     AnamneseModule,
-    UsersModule
+    UsersModule,
+    ContactModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService, 
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {
@@ -54,10 +68,13 @@ export class AppModule implements NestModule {
       .exclude(
         'auth/login',
         'auth/register',
-        'tenants/register', 
+        'auth/tenant-register',
+        'tenants/register',
         'clinic-sites/public/(.*)',
-        'api/docs'         
+        'contact',
+        'admin/(.*)',
+        'api/docs',
       )
-      .forRoutes('*'); 
+      .forRoutes('*');
   }
 }

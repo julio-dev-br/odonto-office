@@ -6,91 +6,79 @@ import { UpdateClinicSiteDto } from './dto/update-clinic-site.dto';
 export class ClinicSitesService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // ==========================================
+  // ROTAS PARA O DASHBOARD (Requer Tenant Logado)
+  // ==========================================
 
-  async update(body: UpdateClinicSiteDto) {
+  // 1. Busca os dados do site da clínica logada (Para preencher a tela)
+  async getMySite() {
     const client = this.prisma.tenantClient as any;
     const model = client.clinicSite || client.ClinicSite;
 
-   
     const currentSite = await model.findFirst();
     if (!currentSite) {
-      throw new NotFoundException('Clinic site settings not found for this tenant.');
-    }
-
-    return model.update({
-      where: { id: currentSite.id },
-      data: body,
-    });
-  }
-
-
-  async getPublicLandingPage(slug: string) {
-
-    const tenant = await this.prisma.tenant.findUnique({
-      where: { slug },
-      include: {
-        clinicSites: true, 
-      },
-    });
-
-    if (!tenant || tenant.status !== 'active') {
-      throw new NotFoundException('The requested clinic site does not exist or is inactive.');
-    }
-
-    const siteSettings = tenant.clinicSites[0];
-    if (!siteSettings) {
-      throw new NotFoundException('Branding configurations not deployed for this clinic.');
+      throw new NotFoundException('Configurações do site não encontradas.');
     }
 
     return {
-      clinicId: tenant.id.toString(),
-      clinicName: tenant.name,
-      slug: tenant.slug,
-      plan: tenant.plan,
-      site: {
-        id: siteSettings.id.toString(),
-        title: siteSettings.title,
-        description: siteSettings.description,
-        logo: siteSettings.logo,
-        phone: siteSettings.phone,
-        whatsapp: siteSettings.whatsapp,
-        primaryColor: siteSettings.primaryColor,
-        accentColor: siteSettings.accentColor,
-        backgroundColor: siteSettings.backgroundColor,
-        theme: siteSettings.theme,
-      },
+      ...currentSite,
+      id: currentSite.id.toString(),
+      tenantId: currentSite.tenantId.toString(),
     };
   }
 
-    async updateSettings(body: any) {
+  // 2. Atualiza as configurações do site
+  async updateSettings(body: UpdateClinicSiteDto) {
     const client = this.prisma.tenantClient as any;
-
     const model = client.clinicSite || client.ClinicSite;
 
-    const site = await model.findFirst();
-
-    if (!site) {
-      throw new NotFoundException('Clinic site settings not found for this tenant.');
+    const currentSite = await model.findFirst();
+    if (!currentSite) {
+      throw new NotFoundException('Configurações do site não encontradas.');
     }
 
-    return model.update({
-      where: { id: site.id },
-      data: {
-        title: body.title,
-        description: body.description,
-        logo: body.logo,
-        phone: body.phone,
-        whatsapp: body.whatsapp,
-        primaryColor: body.primaryColor,
-        accentColor: body.accentColor,
-        backgroundColor: body.backgroundColor,
-        theme: body.theme,
-      },
+    const updated = await model.update({
+      where: { id: currentSite.id },
+      data: body,
     });
+
+    return {
+      ...updated,
+      id: updated.id.toString(),
+      tenantId: updated.tenantId.toString(),
+    };
   }
 
-    async findBySlug(slug: string) {
-    
+  // 3. Publica ou Despublica o site
+  async togglePublish(isPublished: boolean) {
+    const client = this.prisma.tenantClient as any;
+    const model = client.clinicSite || client.ClinicSite;
+
+    const currentSite = await model.findFirst();
+    if (!currentSite) {
+      throw new NotFoundException('Configurações do site não encontradas.');
+    }
+
+    const updated = await model.update({
+      where: { id: currentSite.id },
+      data: {
+        isPublished: isPublished,
+        publishedAt: isPublished ? new Date() : null,
+      },
+    });
+
+    return {
+      message: isPublished ? 'Site publicado com sucesso!' : 'Site desativado com sucesso!',
+      isPublished: updated.isPublished,
+      publishedAt: updated.publishedAt,
+    };
+  }
+
+  // ==========================================
+  // ROTA PÚBLICA (Para o subdomínio no futuro)
+  // ==========================================
+
+  async findBySlug(slug: string) {
     const tenant = await this.prisma.tenant.findUnique({
       where: { slug },
       include: {
@@ -99,13 +87,15 @@ export class ClinicSitesService {
     });
 
     if (!tenant || !tenant.clinicSites || (tenant.clinicSites as any).length === 0) {
-      throw new NotFoundException(`Clinic with slug '${slug}' or its landing page was not found.`);
+      throw new NotFoundException(`Clínica com o slug '${slug}' ou sua página não foi encontrada.`);
     }
 
     const site = Array.isArray(tenant.clinicSites) ? tenant.clinicSites[0] : (tenant.clinicSites as any);
 
-    if (!site) {
-      throw new NotFoundException(`Landing page config for slug '${slug}' is missing.`);
+    // 🚀 AQUI ESTÁ A NOVA REGRA: Se não estiver publicado, não deixa ver!
+    if (!site.isPublished) {
+      // Você pode retornar um erro específico ou um objeto indicando que está em manutenção
+      throw new NotFoundException('Este site está em manutenção ou ainda não foi publicado.');
     }
 
     return {
@@ -120,10 +110,10 @@ export class ClinicSitesService {
         phone: site.phone,
         whatsapp: site.whatsapp,
         branding: {
-          primaryColor: site.primaryColor,       // #0F172A (Deep Obsidian)
-          accentColor: site.accentColor,         // #10B981 (Mint Clean)
-          backgroundColor: site.backgroundColor, // #F8FAFC (Soft Platinum)
-          theme: site.theme,                     // light ou dark
+          primaryColor: site.primaryColor,
+          accentColor: site.accentColor,
+          backgroundColor: site.backgroundColor,
+          theme: site.theme,
         },
       },
     };
