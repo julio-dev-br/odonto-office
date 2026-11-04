@@ -111,7 +111,6 @@ export function AdminLayout() {
         <main className="flex-1 overflow-y-auto p-8">
           <Outlet />
         </main>
-
       </div>
     </div>
   );
