@@ -29,6 +29,9 @@ model Tenant {
   financialRecur   FinancialRecurrence[]  
   dentalProcedures DentalProcedure[]
   anamneses        Anamnese[]
+  professionalSchedules   ProfessionalSchedule[]
+  scheduleExceptions      ScheduleException[]
+  professionalProcedures  ProfessionalProcedure[]
 
   @@map("tenants")
 }
@@ -62,6 +65,7 @@ model Professional {
   cro       String?  @db.VarChar(50) // Registro do Conselho Regional de Odontologia
   specialty String?  @db.VarChar(100) // ex: "Ortodontia", "Endodontia"
   active    Boolean  @default(true)
+  bufferTime  Int      @default(10) @map("buffer_time") // Tempo de higienização em minutos
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
@@ -70,6 +74,9 @@ model Professional {
   user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
   appointments   Appointment[]
   medicalRecords MedicalRecord[]
+  schedules   ProfessionalSchedule[]
+  exceptions  ScheduleException[]
+  procedures  ProfessionalProcedure[]
 
   @@map("professionals")
 }
@@ -177,6 +184,7 @@ model DentalProcedure {
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   medicalRecords MedicalRecord[]
+  professionals ProfessionalProcedure[]
 
   @@map("dental_procedures")
 }
@@ -265,4 +273,62 @@ model ContactMessage {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("contact_messages")
+}
+
+model ProfessionalSchedule {
+  id             BigInt   @id @default(autoincrement())
+  tenantId       BigInt   @map("tenant_id")
+  professionalId BigInt   @map("professional_id")
+  
+  dayOfWeek      Int      @map("day_of_week") // 0=Domingo, 1=Segunda... 6=Sábado
+  startTime      String   @map("start_time") @db.VarChar(5) // "09:00"
+  endTime        String   @map("end_time") @db.VarChar(5)   // "18:00"
+  breakStart     String?  @map("break_start") @db.VarChar(5) // "12:00"
+  breakEnd       String?  @map("break_end") @db.VarChar(5)   // "13:00"
+  
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  professional Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@unique([professionalId, dayOfWeek])
+  @@map("professional_schedules")
+}
+
+// Exceções (Férias, folgas ou horários especiais)
+model ScheduleException {
+  id             BigInt   @id @default(autoincrement())
+  tenantId       BigInt   @map("tenant_id")
+  professionalId BigInt   @map("professional_id")
+  
+  date           DateTime @db.Date // O dia exato da exceção
+  isAvailable    Boolean  @map("is_available") // false = Férias/Folga | true = Trabalho especial
+  startTime      String?  @map("start_time") @db.VarChar(5) 
+  endTime        String?  @map("end_time") @db.VarChar(5)   
+  reason         String?  @db.VarChar(255) 
+  
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  professional Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  @@map("schedule_exceptions")
+}
+
+// Ligação Profissional x Procedimento
+model ProfessionalProcedure {
+  id             BigInt   @id @default(autoincrement())
+  tenantId       BigInt   @map("tenant_id")
+  professionalId BigInt   @map("professional_id")
+  procedureId    BigInt   @map("procedure_id")
+
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  professional Professional    @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  procedure    DentalProcedure @relation(fields: [procedureId], references: [id], onDelete: Cascade)
+
+  @@unique([professionalId, procedureId]) // Evita duplicar a mesma ligação
+  @@map("professional_procedures")
 }
