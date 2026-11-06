@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { User, Settings as SettingsIcon, Users, Shield, Building, Key, Sparkles } from 'lucide-react';
+import { User, Settings as SettingsIcon, Users, Shield, Building, Key, Sparkles, Clock } from 'lucide-react'; // 🚀 Adicionado Clock
 import toast from 'react-hot-toast';
 import { api } from '../../services/api';
 import { UserManagementForm } from '../../components/UserManagementForm';
 import { ProcedureForm } from '../../components/ProcedureForm';
+import { ScheduleSettings } from '../../components/ScheduleSettings'; // 🚀 Importado o novo componente
 
 const profileSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres'),
@@ -22,7 +23,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 type ClinicFormData = z.infer<typeof clinicSchema>;
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'procedures' | 'system'>('profile');
+  // 🚀 Adicionado 'schedules' no tipo do estado
+  const [activeTab, setActiveTab] = useState<'profile' | 'team' | 'procedures' | 'system' | 'schedules'>('profile');
   const [isLoading, setIsLoading] = useState(true);
   const tenantIdHeader = localStorage.getItem('@OdontoOffice:tenantId') || '1';
 
@@ -145,6 +147,15 @@ export default function Settings() {
           <Sparkles size={16} /> Catálogo de Procedimentos
         </button>
 
+        {/* 🚀 NOVA ABA DE HORÁRIOS */}
+        <button
+          onClick={() => setActiveTab('schedules')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'schedules' ? 'border-dentistry-teal text-dentistry-teal bg-gray-50/50' : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+        >
+          <Clock size={16} /> Horários de Atendimento
+        </button>
+
         <button
           onClick={() => setActiveTab('system')}
           className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'system' ? 'border-dentistry-teal text-dentistry-teal bg-gray-50/50' : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -207,7 +218,10 @@ export default function Settings() {
             {/* ABA 3: PROCEDIMENTOS CLÍNICOS */}
             {activeTab === 'procedures' && <ProcedureForm />}
 
-            {/* ABA 4: DADOS DO CONSULTÓRIO */}
+            {/* 🚀 ABA 4: HORÁRIOS DE ATENDIMENTO */}
+            {activeTab === 'schedules' && <ScheduleSettings />}
+
+            {/* ABA 5: DADOS DO CONSULTÓRIO */}
             {activeTab === 'system' && (
               <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm max-w-2xl">
                 <h3 className="text-base font-bold text-deep-obsidian mb-4 flex items-center gap-2">

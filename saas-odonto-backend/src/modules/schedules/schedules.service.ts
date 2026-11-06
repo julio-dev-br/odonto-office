@@ -4,7 +4,7 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 
 @Injectable()
 export class SchedulesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   // 1. Busca todos os horários configurados de um profissional
   async getSchedules(professionalId: string) {
@@ -37,31 +37,42 @@ export class SchedulesService {
       throw new NotFoundException('Profissional não encontrado nesta clínica.');
     }
 
-    const schedule = await client.professionalSchedule.upsert({
+    // 1. Busca se já existe uma configuração para este dia
+    const existingSchedule = await client.professionalSchedule.findFirst({
       where: {
-        professionalId_dayOfWeek: {
-          professionalId: BigInt(professionalId),
-          dayOfWeek: data.dayOfWeek,
-        },
-      },
-      create: {
-        // O tenantId é injetado automaticamente pelo nosso Prisma Extension
         professionalId: BigInt(professionalId),
         dayOfWeek: data.dayOfWeek,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        breakStart: data.breakStart,
-        breakEnd: data.breakEnd,
-        active: data.active ?? true,
-      },
-      update: {
-        startTime: data.startTime,
-        endTime: data.endTime,
-        breakStart: data.breakStart,
-        breakEnd: data.breakEnd,
-        active: data.active ?? true,
       },
     });
+
+    let schedule;
+
+    // 2. Se existir, atualiza
+    if (existingSchedule) {
+      schedule = await client.professionalSchedule.update({
+        where: { id: existingSchedule.id },
+        data: {
+          startTime: data.startTime,
+          endTime: data.endTime,
+          breakStart: data.breakStart,
+          breakEnd: data.breakEnd,
+          active: data.active ?? true,
+        },
+      });
+    } else {
+      // 3. Se não existir, cria (e o tenantClient injeta o tenantId automaticamente)
+      schedule = await client.professionalSchedule.create({
+        data: {
+          professionalId: BigInt(professionalId),
+          dayOfWeek: data.dayOfWeek,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          breakStart: data.breakStart,
+          breakEnd: data.breakEnd,
+          active: data.active ?? true,
+        },
+      });
+    }
 
     return {
       ...schedule,
