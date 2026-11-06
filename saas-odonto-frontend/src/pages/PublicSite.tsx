@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MapPin, Phone, MessageCircle, Clock, ChevronRight } from 'lucide-react';
+import { BookingWizard } from '../components/BookingWizard'; // 🚀 Importa o Wizard
 
 export default function PublicSite() {
   const [siteData, setSiteData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // 🚀 Estado para controlar a abertura do Modal
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [slug, setSlug] = useState('');
 
   useEffect(() => {
     const hostname = window.location.hostname; 
     const parts = hostname.split('.');
-    const slug = parts.length > 1 && parts[0] !== 'www' ? parts[0] : 'sorriso-perfeito'; 
+    const extractedSlug = parts.length > 1 && parts[0] !== 'www' ? parts[0] : 'sorriso-perfeito'; 
+    setSlug(extractedSlug);
 
-    axios.get(`http://localhost:3000/clinic-sites/public/${slug}`)
+    axios.get(`http://localhost:3000/clinic-sites/public/${extractedSlug}`)
       .then(response => {
         setSiteData(response.data);
         setLoading(false);
@@ -44,7 +50,6 @@ export default function PublicSite() {
   const { settings, clinicName } = siteData;
   const branding = settings.branding;
   
-  // Formata o número do whatsapp para o link
   const whatsappNumber = settings.whatsapp?.replace(/\D/g, '') || '';
   const whatsappLink = `https://wa.me/55${whatsappNumber}`;
 
@@ -67,16 +72,14 @@ export default function PublicSite() {
           <span className="text-xl md:text-2xl font-bold text-white tracking-tight">{clinicName}</span>
         </div>
         
-        <a 
-          href={whatsappLink} 
-          target="_blank" 
-          rel="noreferrer"
-          className="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-transform hover:scale-105 shadow-lg"
+        <button 
+          onClick={() => setIsBookingOpen(true)}
+          className="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full font-bold text-sm transition-transform hover:scale-105 shadow-lg cursor-pointer"
           style={{ backgroundColor: branding.accentColor, color: '#fff' }}
         >
-          <MessageCircle size={18} />
+          <Clock size={18} />
           Agendar Consulta
-        </a>
+        </button>
       </header>
 
       {/* HERO SECTION */}
@@ -97,25 +100,26 @@ export default function PublicSite() {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 pt-4">
-            <a 
-              href={whatsappLink}
-              target="_blank" 
-              rel="noreferrer"
-              className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow-xl"
+            {/* 🚀 Botão principal agora abre o Modal de Agendamento */}
+            <button 
+              onClick={() => setIsBookingOpen(true)}
+              className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-transform hover:scale-105 shadow-xl cursor-pointer"
               style={{ backgroundColor: branding.accentColor, color: '#fff' }}
             >
-              <MessageCircle size={22} />
-              Falar no WhatsApp
-            </a>
+              <CalendarIcon size={22} />
+              Agendar Online
+            </button>
             
-            {settings.phone && (
+            {settings.whatsapp && (
               <a 
-                href={`tel:${settings.phone}`}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 bg-white/50 backdrop-blur-sm border-2 transition-colors hover:bg-white/80"
+                href={whatsappLink}
+                target="_blank" 
+                rel="noreferrer"
+                className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 bg-white/50 backdrop-blur-sm border-2 transition-colors hover:bg-white/80 cursor-pointer"
                 style={{ borderColor: branding.primaryColor, color: branding.primaryColor }}
               >
-                <Phone size={22} />
-                Ligar Agora
+                <MessageCircle size={22} />
+                Falar no WhatsApp
               </a>
             )}
           </div>
@@ -126,8 +130,6 @@ export default function PublicSite() {
           <div className="absolute inset-0 rounded-[3rem] transform rotate-3 scale-105 opacity-20 blur-xl" style={{ backgroundColor: branding.primaryColor }}></div>
           <div className="relative bg-white p-4 rounded-[2.5rem] shadow-2xl border border-black/5">
             <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-slate-100 flex items-center justify-center relative">
-              
-              {/* Imagem ilustrativa genérica (pode ser trocada no futuro) */}
               <div className="absolute inset-0 opacity-10" style={{ backgroundColor: branding.accentColor }}></div>
               <div className="text-center p-8 space-y-4 z-10">
                 <div className="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-white text-3xl font-black shadow-lg" style={{ backgroundColor: branding.primaryColor }}>
@@ -152,16 +154,34 @@ export default function PublicSite() {
       </footer>
 
       {/* BOTÃO FLUTUANTE DO WHATSAPP (MOBILE) */}
-      <a 
-        href={whatsappLink}
-        target="_blank"
-        rel="noreferrer"
-        className="md:hidden fixed bottom-6 right-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl z-50 text-white animate-bounce"
-        style={{ backgroundColor: '#25D366' }} // Cor oficial do WhatsApp
-      >
-        <MessageCircle size={32} />
-      </a>
+      {settings.whatsapp && (
+        <a 
+          href={whatsappLink}
+          target="_blank"
+          rel="noreferrer"
+          className="md:hidden fixed bottom-6 right-6 w-16 h-16 rounded-full flex items-center justify-center shadow-2xl z-40 text-white animate-bounce cursor-pointer"
+          style={{ backgroundColor: '#25D366' }} 
+        >
+          <MessageCircle size={32} />
+        </a>
+      )}
+
+      {/* 🚀 O MODAL DE AGENDAMENTO */}
+      <BookingWizard 
+        slug={slug} 
+        isOpen={isBookingOpen} 
+        onClose={() => setIsBookingOpen(false)} 
+      />
 
     </div>
+  );
+}
+
+// Ícone que faltou importar
+function CalendarIcon(props: any) {
+  return (
+    <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
   );
 }
