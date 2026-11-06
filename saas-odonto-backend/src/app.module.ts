@@ -22,6 +22,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { SchedulesModule } from './modules/schedules/schedules.module';
+import { PublicBookingModule } from './modules/public-booking/public-booking.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -51,6 +52,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     ContactModule,
     AdminModule,
     SchedulesModule,
+    PublicBookingModule,
   ],
   controllers: [AppController],
   providers: [
@@ -75,6 +77,7 @@ export class AppModule implements NestModule {
         'clinic-sites/public/(.*)',
         'contact',
         'admin/(.*)',
+        'public-booking/(.*)',
         'api/docs',
       )
       .forRoutes('*');
