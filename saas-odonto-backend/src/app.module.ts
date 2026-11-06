@@ -21,6 +21,7 @@ import { AnamneseModule } from './modules/anamnese/anamnese.module';
 import { UsersModule } from './modules/users/users.module';
 import { ContactModule } from './modules/contact/contact.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { SchedulesModule } from './modules/schedules/schedules.module';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -49,6 +50,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     UsersModule,
     ContactModule,
     AdminModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [
