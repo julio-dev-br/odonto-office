@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../core/database/prisma.service';
+import { CreateBookingDto } from './dto/create-booking.dto';
 
 @Injectable()
 export class PublicBookingService {
@@ -167,5 +168,117 @@ export class PublicBookingService {
     }
 
     return { availableSlots };
+  }
+
+  async createBooking(slug: string, data: CreateBookingDto) {
+    // 1. Honeypot (Anti-Bot) - Se preenchido, finge sucesso e não salva.
+    if (data.website) {
+      return { message: 'Agendamento confirmado com sucesso!', appointmentId: '000' };
+    }
+
+    const tenant = await this.prisma.tenant.findUnique({ where: { slug } });
+    if (!tenant) throw new NotFoundException('Clínica não encontrada.');
+
+    const procedure = await this.prisma.dentalProcedure.findFirst({
+      where: { id: BigInt(data.procedureId), tenantId: tenant.id },
+    });
+    if (!procedure) throw new NotFoundException('Procedimento não encontrado.');
+
+    const professional = await this.prisma.professional.findFirst({
+      where: { id: BigInt(data.professionalId), tenantId: tenant.id },
+    });
+    if (!professional) throw new NotFoundException('Profissional não encontrado.');
+
+    // 2. Cálculo do Início e Fim da consulta
+    const startAt = new Date(`${data.date}T${data.time}:00`);
+    const totalDurationMin = procedure.estimatedMin + (professional.bufferTime || 10);
+    const endAt = new Date(startAt.getTime() + totalDurationMin * 60000);
+
+    // 3. Regra de Vinculação do Paciente
+    // Busca paciente existente pelo WhatsApp ou CPF
+    let patient = await this.prisma.patient.findFirst({
+      where: {
+        tenantId: tenant.id,
+        OR: [
+          { whatsapp: data.whatsapp },
+          ...(data.cpf ? [{ cpf: data.cpf }] : []),
+        ],
+      },
+    });
+
+    if (!patient) {
+      // Cria um novo paciente se não encontrar
+      patient = await this.prisma.patient.create({
+        data: {
+          tenantId: tenant.id,
+          name: data.name,
+          whatsapp: data.whatsapp,
+          cpf: data.cpf,
+        },
+      });
+    }
+
+    // 4. Regra de Segurança: Limite de 2 agendamentos futuros por paciente
+    const futureAppointmentsCount = await this.prisma.appointment.count({
+      where: {
+        patientId: patient.id,
+        startAt: { gte: new Date() },
+        status: { notIn: ['cancelled', 'completed'] },
+      },
+    });
+
+    if (futureAppointmentsCount >= 2) {
+      throw new BadRequestException('Você já possui 2 agendamentos ativos. Cancele um existente para criar um novo.');
+    }
+
+    // 5. Transação: Proteção contra Cliques Simultâneos (Race Condition)
+    try {
+      const appointment = await this.prisma.$transaction(async (tx) => {
+        // Verifica se alguém agendou nesse exato milissegundo
+        const conflictingAppointment = await tx.appointment.findFirst({
+          where: {
+            professionalId: professional.id,
+            status: { notIn: ['cancelled', 'completed'] },
+            AND: [
+              { startAt: { lt: endAt } },
+              { endAt: { gt: startAt } }
+            ]
+          }
+        });
+
+        if (conflictingAppointment) {
+          throw new BadRequestException('Ops! Este horário acabou de ser reservado por outra pessoa. Escolha outro.');
+        }
+
+        // Se estiver livre, cria o agendamento
+        return tx.appointment.create({
+          data: {
+            tenantId: tenant.id,
+            patientId: patient.id,
+            professionalId: professional.id,
+            startAt,
+            endAt,
+            type: procedure.name,
+            status: 'scheduled',
+            notes: `Agendamento Online. Procedimento: ${procedure.name}`,
+          },
+        });
+      });
+
+      return {
+        message: 'Agendamento confirmado com sucesso!',
+        appointment: {
+          id: appointment.id.toString(),
+          date: appointment.startAt,
+          professional: professional.name,
+          procedure: procedure.name,
+        },
+      };
+
+    } catch (error) {
+      if (error instanceof BadRequestException) throw error;
+      console.error(error);
+      throw new InternalServerErrorException('Erro ao processar o agendamento. Tente novamente.');
+    }
   }
 }
